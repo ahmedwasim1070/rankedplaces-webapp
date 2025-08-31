@@ -4,12 +4,12 @@
 import Link from "next/link";
 import Image from "next/image";
 // Providers
-import { getGlobalProvider } from "@/providers/GlobalProvider";
+import { useGlobalProvider } from "@/providers/GlobalProvider";
 
 // 
 function Footer() {
     // Provider
-    const { pathname } = getGlobalProvider();
+    const { pathname } = useGlobalProvider();
     // Nav Item
     const primaryNavigationItems = [
         {

@@ -6,13 +6,13 @@ import { useEffect, useState } from "react";
 // Types
 import { CountryResponse } from "@/types";
 // Porviders
-import { getLocationProvider } from "@/providers/LocationProvider";
+import { useLocationProvider } from "@/providers/LocationProvider";
 
 // 
 function CountrySelector() {
     // Providers
     // Location
-    const { locationCookieData, setLocationCookieData } = getLocationProvider();
+    const { locationCookieData, setLocationCookieData } = useLocationProvider();
     // States
     // Selected country 
     const [selectedCountry, setSelectedCountry] = useState<CountryResponse | null>(null);

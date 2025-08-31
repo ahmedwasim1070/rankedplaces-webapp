@@ -1,6 +1,6 @@
 "use client";
 
-import { getGlobalProvider } from "@/providers/GlobalProvider";
+import { useGlobalProvider } from "@/providers/GlobalProvider";
 // Imports
 import { PlusSquare } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -11,7 +11,7 @@ function AddtagBtn() {
     // Session
     const { data: session, status } = useSession();
     // Global
-    const { setIsCreateTagPop, setIsSigninPopup } = getGlobalProvider();
+    const { setIsCreateTagPop, setIsSigninPopup } = useGlobalProvider();
 
     return (
         <>

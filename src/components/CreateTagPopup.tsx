@@ -7,7 +7,7 @@ import { rankingPhrases } from "@/lib/constants/rankingPhrases";
 // Types
 import { ApiResponse, TagFormData, TagFormError } from "@/types";
 // Provider
-import { getGlobalProvider } from "@/providers/GlobalProvider"
+import { useGlobalProvider } from "@/providers/GlobalProvider"
 // Components
 import Loader from "./Loader";
 
@@ -15,13 +15,12 @@ import Loader from "./Loader";
 function CreateTagPopup() {
     // Providers
     // Global
-    const { setIsCreateTagPop } = getGlobalProvider();
+    const { setIsCreateTagPop } = useGlobalProvider();
     // States
     // Disable button
     const [disableSubmit, setDisableSubmit] = useState<boolean>(false);
     // Form Data
     const [tagFormData, setTagFormData] = useState<TagFormData>({
-        userId: "",
         phrase: "",
         keyword: "",
     });

@@ -6,14 +6,14 @@ import Link from "next/link";
 import { AlignJustify } from "lucide-react";
 import { useState } from "react";
 // Context
-import { getGlobalProvider } from "@/providers/GlobalProvider";
+import { useGlobalProvider } from "@/providers/GlobalProvider";
 // Components
 import CitySelector from "./CitySelector";
 
 // 
 function Header() {
     // Context
-    const { pathname } = getGlobalProvider();
+    const { pathname } = useGlobalProvider();
     // States
     const [isExpanded, setIsExpaneded] = useState<boolean>(false);
     // Nav Contents

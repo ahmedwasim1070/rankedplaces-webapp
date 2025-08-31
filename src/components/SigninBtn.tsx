@@ -1,6 +1,6 @@
 "use client";
 
-import { getGlobalProvider } from "@/providers/GlobalProvider";
+import { useGlobalProvider } from "@/providers/GlobalProvider";
 // Imports
 import { useSession } from "next-auth/react";
 
@@ -10,7 +10,7 @@ function SigninBtn() {
     // Session
     const { data: session, status } = useSession();
     // Global
-    const { setIsSigninPopup } = getGlobalProvider();
+    const { setIsSigninPopup } = useGlobalProvider();
 
     return (
         <button disabled={status === 'authenticated'} onClick={() => { { status !== 'authenticated' && setIsSigninPopup(true) } }} type="button" className={`flex flex-row items-center group px-4 py-2 gap-x-2 text-center rounded-lg group ${status !== 'authenticated' && 'border border-secondary hover:bg-transparent transition-colors bg-secondary cursor-pointer'}`}>

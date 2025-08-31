@@ -9,9 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/client": "^6.15.0",
     "lucide-react": "^0.542.0",
+    "motion": "^12.23.12",
     "next": "15.5.0",
     "next-auth": "^4.24.11",
+    "prisma": "^6.15.0",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },

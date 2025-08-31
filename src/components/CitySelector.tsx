@@ -5,13 +5,13 @@ import { useEffect, useState } from "react";
 // Types
 import { ApiResponse, CitiesResponse } from "@/types";
 // Porviders
-import { getLocationProvider } from "@/providers/LocationProvider";
+import { useLocationProvider } from "@/providers/LocationProvider";
 
 // 
 function CitySelector() {
     // Providers
     // Location
-    const { locationCookieData, setLocationCookieData } = getLocationProvider();
+    const { locationCookieData, setLocationCookieData } = useLocationProvider();
     // States
     // Selected City
     const [selectedCity, setSelectedCity] = useState<CitiesResponse | null>(null);

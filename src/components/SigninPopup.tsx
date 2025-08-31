@@ -1,13 +1,13 @@
 // Imports
 import { ArrowRight, X } from "lucide-react"
 // Providers
-import { getGlobalProvider } from "@/providers/GlobalProvider";
+import { useGlobalProvider } from "@/providers/GlobalProvider";
 
 // 
 function SigninPopup() {
     // Provider
     // Global
-    const { setIsSigninPopup } = getGlobalProvider();
+    const { setIsSigninPopup } = useGlobalProvider();
 
     return (
         <section className="fixed min-w-screen min-h-screen bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center px-2">

@@ -4,7 +4,7 @@
 import { Search } from "lucide-react";
 import Image from "next/image";
 // Providers
-import { getLocationProvider } from "@/providers/LocationProvider";
+import { useLocationProvider } from "@/providers/LocationProvider";
 import SigninBtn from "./SigninBtn";
 import AddtagBtn from "./CreatetagBtn";
 
@@ -12,7 +12,7 @@ import AddtagBtn from "./CreatetagBtn";
 function Hero() {
     // Provider
     // Location
-    const { locationCookieData } = getLocationProvider();
+    const { locationCookieData } = useLocationProvider();
 
     return (
         <main role="main" className="min-w-screen py-14 flex flex-col items-center bg-gradient-to-b from-background to-white gap-y-4">

@@ -56,7 +56,7 @@ export const GlobalProvider = ({ children }: GlobalProviderProps) => {
             }
 
             {/* Create-tag Screen Popup */}
-            {true &&
+            {isCreateTagPop &&
                 <CreateTagPopup />
             }
 
@@ -70,10 +70,10 @@ export const GlobalProvider = ({ children }: GlobalProviderProps) => {
 }
 
 // Hook to fetch provider data
-export const getGlobalProvider = (): GloabalProvider => {
+export const useGlobalProvider = (): GloabalProvider => {
     const context = useContext(GlobalContext);
     if (context === undefined) {
-        throw new Error('getGlobalProvider must be used within a GlobalProvider');
+        throw new Error('useGlobalProvider must be used within a GlobalProvider');
     }
     return context;
 }

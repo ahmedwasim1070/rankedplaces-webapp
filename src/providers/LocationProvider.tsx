@@ -62,10 +62,10 @@ export const LocationProvider = ({ children, initialLocation }: LocationProvider
 }
 
 // Hook to fetch provider data
-export const getLocationProvider = () => {
+export const useLocationProvider = () => {
     const context = useContext(LocationContext);
     if (context === undefined) {
-        throw new Error('getLocationProvider must be used within a LoactionProvider');
+        throw new Error('useLocationProvider must be used within a LoactionProvider');
     }
     return context;
 }

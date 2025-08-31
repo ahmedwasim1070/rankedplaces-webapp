@@ -2,13 +2,21 @@
 import { NextRequest, NextResponse } from "next/server";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
+import tagFormValidator from "@/lib/api/validators/tagForm.validator";
 // Types
-import { ApiResponse } from "@/types";
+import { ApiResponse, TagFormData } from "@/types";
 
 //
 export async function POST(request: NextRequest) {
   try {
-    const body = request.json();
+    const body: TagFormData = await request.json();
+    const { phrase, keyword } = body;
+
+    //
+    const errorInData = tagFormValidator(phrase, keyword);
+    if (errorInData) {
+      throw new Error(errorInData);
+    }
   } catch (error) {
     // Message
     const message =

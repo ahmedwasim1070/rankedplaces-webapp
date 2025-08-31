@@ -1,6 +1,5 @@
 // Form Data
 export type TagFormData = {
-  userId: string;
   phrase: string;
   keyword: string;
 };
