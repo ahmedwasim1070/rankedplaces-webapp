@@ -50,7 +50,7 @@ export const authOptions: NextAuthOptions = {
 
       if (token.userId && !token.guest) {
         const dbUser = await prisma.users.findUnique({
-          where: { unique_id: token.userId },
+          where: { unique_id: token.unique_id },
         });
         if (dbUser) {
           token.email = dbUser.email;
@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions = {
 
     async session({ session, token }) {
       session.user = {
-        id: token.userId,
+        id: token.unique_id,
         name: token.name || null,
         email: token.email || null,
         guest: token.guest ?? false,

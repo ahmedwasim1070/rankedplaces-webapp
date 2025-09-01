@@ -8,32 +8,16 @@ import { ApiResponse, CitiesResponse } from "@/types";
 //
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-
-  const countryCode = searchParams.get("country-code");
-  if (!countryCode || countryCode.length < 2) {
-    return NextResponse.json<ApiResponse<never>>(
-      {
-        success: false,
-        message: "Country code is required.",
-      },
-      { status: 400 }
-    );
-  }
-
-  if (!process.env.GEONAME_USERNAME) {
-    console.error("GEONAME_USERNAME enviroment variable not set.");
-    return NextResponse.json<ApiResponse<never>>(
-      {
-        success: false,
-        message: "Server config error.",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
-
   try {
+    const countryCode = searchParams.get("country-code");
+    if (!countryCode || countryCode.length < 2) {
+      throw new Error("Country code is required.");
+    }
+
+    if (!process.env.GEONAME_USERNAME) {
+      throw new Error("Server Configuration Error.");
+    }
+
     const response = await fetch(
       `http://api.geonames.org/searchJSON?country=${countryCode}&featureClass=P&orderby=population&maxRows=150&username=${process.env.GEONAME_USERNAME}`
     );
