@@ -4,7 +4,8 @@
 import { motion, animate } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useState, useRef, useEffect } from 'react';
-import { ApiResponse } from '@/types';
+// Types
+import { ApiResponse, cityFetchTagsResponse, countryFetchsTagResponse, worldFetchTagsResponse } from '@/types';
 
 //  Loader
 const TagSkeletonLoader = () => {
@@ -29,7 +30,7 @@ function TagCarousel() {
     const sliderRef = useRef(null);
     // States
     // Tags
-    const [tags, setTags] = useState<null>(null);
+    const [tags, setTags] = useState<worldFetchTagsResponse | countryFetchsTagResponse | cityFetchTagsResponse | null>(null);
     // Loader
     const [isFetching, setIsFetching] = useState<boolean>(false);
 
@@ -38,7 +39,7 @@ function TagCarousel() {
 
         setIsFetching(true);
         try {
-            const res = await fetch(`/api/fetchTags/?by=top`);
+            const res = await fetch(`/api/fetch-tags`);
             if (!res.ok) {
                 const errData = (await res.json()) as ApiResponse<never>;
                 throw new Error(errData.message);
@@ -62,11 +63,10 @@ function TagCarousel() {
         const slider = sliderRef.current as HTMLElement | null;
         if (!slider) return;
 
-        const scrollAmount = 500; // Adjust as needed
+        const scrollAmount = 500;
 
         if (direction === "next") {
             if (slider.scrollLeft + slider.clientWidth >= slider.scrollWidth - 1) {
-                // At end, loop to start
                 (slider.scrollLeft, 0, {
                     duration: 0.5,
                     onUpdate: (latest: number) => {
@@ -87,7 +87,6 @@ function TagCarousel() {
             }
         } else {
             if (slider.scrollLeft <= 0) {
-                // At start, loop to end
                 animate(slider.scrollLeft, slider.scrollWidth - slider.clientWidth, {
                     duration: 0.5,
                     onUpdate: (latest) => {

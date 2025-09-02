@@ -1,7 +1,10 @@
+// Imports
+import { Prisma } from "@prisma/client";
+
 // Api response type
 export type ApiResponse<T> =
-  | { success: true; data: T; message?: string }
-  | { success: false; message?: string };
+  | { success: true; data: T; message: string }
+  | { success: false; message: string };
 
 // City response type
 export type CitiesResponse = {
@@ -18,3 +21,43 @@ export type CountryResponse = {
   lat: number;
   lng: number;
 };
+
+// FetchTags Responses
+// Response in world fetch type
+export type worldFetchTagsResponse = Prisma.tagsGetPayload<{
+  include: {
+    _count: {
+      select: {
+        place_tags: true;
+      };
+    };
+  };
+}>;
+// Response in country fetch type
+export type countryFetchsTagResponse = Prisma.tagsGetPayload<{
+  include: {
+    _count: {
+      select: {
+        place_tags: {
+          where: {
+            place: { country: string };
+          };
+        };
+      };
+    };
+  };
+}>;
+// Response in city fetch type
+export type cityFetchTagsResponse = Prisma.tagsGetPayload<{
+  include: {
+    _count: {
+      select: {
+        place_tags: {
+          where: {
+            place: { country: string; city: string };
+          };
+        };
+      };
+    };
+  };
+}>;

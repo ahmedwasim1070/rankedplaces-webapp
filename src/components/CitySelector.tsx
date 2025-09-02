@@ -29,7 +29,7 @@ function CitySelector() {
         // 
         setErrMsg(null);
         try {
-            const res = await fetch(`/api/fetchCities/?country-code=${locationCookieData?.countryCode}`);
+            const res = await fetch(`/api/fetch-cities/?country-code=${locationCookieData?.countryCode}`);
             if (!res.ok) {
                 const errData = (await res.json()) as ApiResponse<never>;
                 throw new Error(errData.message);

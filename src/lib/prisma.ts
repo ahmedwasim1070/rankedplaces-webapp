@@ -1,5 +1,5 @@
 // Imports
-import { PrismaClient } from "../generated/prisma";
+import { PrismaClient } from "@/generated";
 
 // Global
 const gloablPrisma = globalThis as unknown as {

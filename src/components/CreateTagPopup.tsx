@@ -10,6 +10,7 @@ import { ApiResponse, TagFormData, TagFormError } from "@/types";
 import { useGlobalProvider } from "@/providers/GlobalProvider"
 // Components
 import Loader from "./Loader";
+import toast from "react-hot-toast";
 
 // 
 function CreateTagPopup() {
@@ -44,7 +45,7 @@ function CreateTagPopup() {
 
         setIsSubmiting(true);
         try {
-            const res = await fetch(`/api/createTag`, {
+            const res = await fetch(`/api/create-tag`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -56,13 +57,16 @@ function CreateTagPopup() {
                 throw new Error(errData.message);
             }
 
-            const data = (await res.json()) as ApiResponse<never>;
+            const data = (await res.json()) as ApiResponse<null>;
             if (data.success) {
+                toast.success(data.message);
             }
         } catch (err) {
             // Message
             const msg =
                 err instanceof Error ? err.message : "Unexpected error.";
+            // 
+            toast.error(msg);
             // 
             console.error("Error in fetchCountries in CountrySelector.", "Message : ", msg, "Error : ", err);
         } finally {

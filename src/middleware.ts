@@ -5,7 +5,7 @@ import { getToken } from "next-auth/jwt";
 import { ApiResponse } from "./types";
 
 // Routes
-const protectedRoutes = ["/api/createTag"];
+const protectedRoutes = ["/api/create-tag"];
 
 //
 export async function middleware(request: NextRequest) {
