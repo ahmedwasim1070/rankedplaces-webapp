@@ -1,5 +1,5 @@
 // Imports
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma";
 
 // Api response type
 export type ApiResponse<T> =
@@ -24,7 +24,7 @@ export type CountryResponse = {
 
 // FetchTags Responses
 // Response in world fetch type
-export type worldFetchTagsResponse = Prisma.tagsGetPayload<{
+export type worldFetchTagsResponse = Prisma.TagsGetPayload<{
   include: {
     _count: {
       select: {
@@ -34,7 +34,7 @@ export type worldFetchTagsResponse = Prisma.tagsGetPayload<{
   };
 }>;
 // Response in country fetch type
-export type countryFetchsTagResponse = Prisma.tagsGetPayload<{
+export type countryFetchsTagResponse = Prisma.TagsGetPayload<{
   include: {
     _count: {
       select: {
@@ -48,7 +48,7 @@ export type countryFetchsTagResponse = Prisma.tagsGetPayload<{
   };
 }>;
 // Response in city fetch type
-export type cityFetchTagsResponse = Prisma.tagsGetPayload<{
+export type cityFetchTagsResponse = Prisma.TagsGetPayload<{
   include: {
     _count: {
       select: {

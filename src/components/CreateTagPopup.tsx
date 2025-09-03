@@ -4,13 +4,13 @@
 import { X } from "lucide-react"
 import { useEffect, useState } from "react";
 import { rankingPhrases } from "@/lib/constants/rankingPhrases";
+import toast from "react-hot-toast";
 // Types
 import { ApiResponse, TagFormData, TagFormError } from "@/types";
 // Provider
 import { useGlobalProvider } from "@/providers/GlobalProvider"
 // Components
 import Loader from "./Loader";
-import toast from "react-hot-toast";
 
 // 
 function CreateTagPopup() {
@@ -59,7 +59,15 @@ function CreateTagPopup() {
 
             const data = (await res.json()) as ApiResponse<null>;
             if (data.success) {
+                // 
                 toast.success(data.message);
+                // 
+                setTagFormData({
+                    phrase: "",
+                    keyword: "",
+                })
+                // 
+                setIsCreateTagPop(false);
             }
         } catch (err) {
             // Message

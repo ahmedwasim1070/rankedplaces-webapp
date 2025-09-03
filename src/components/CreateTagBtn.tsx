@@ -1,9 +1,10 @@
 "use client";
 
-import { useGlobalProvider } from "@/providers/GlobalProvider";
 // Imports
 import { PlusSquare } from "lucide-react";
 import { useSession } from "next-auth/react";
+// Providers
+import { useGlobalProvider } from "@/providers/GlobalProvider";
 
 // 
 function AddtagBtn() {

@@ -30,31 +30,6 @@ function CountrySelector() {
             label: 'Top World Places',
         },
     ]
-    // Fetch country from (/public/data/countries.json)
-    const fetchCountries = async () => {
-        // 
-        setIsLoading(true);
-        // 
-        setErrMsg(null);
-        try {
-            const res = await fetch('/data/countries.json');
-            if (!res.ok) {
-                throw new Error("Failed to fetch countries.")
-            }
-
-            const data = await res.json();
-            setCountries(data);
-        } catch (err) {
-            // Message
-            const msg =
-                err instanceof Error ? err.message : "Unexpected error.";
-            // 
-            setErrMsg(msg);
-            console.error("Error in fetchCountries in CountrySelector.", "Message : ", msg, "Error : ", err);
-        } finally {
-            setIsLoading(false);
-        }
-    }
     // Handle selection
     const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selected = JSON.parse(e.target.value);
@@ -64,9 +39,34 @@ function CountrySelector() {
     // Effects
     // Fetch countries if not any
     useEffect(() => {
-        if (!countries) {
-            fetchCountries();
+        // Fetch country from (/public/data/countries.json)
+        const fetchCountries = async () => {
+            // 
+            setIsLoading(true);
+            // 
+            setErrMsg(null);
+            try {
+                const res = await fetch('/data/countries.json');
+                if (!res.ok) {
+                    throw new Error("Failed to fetch countries.")
+                }
+
+                const data = await res.json();
+                setCountries(data);
+            } catch (err) {
+                // Message
+                const msg =
+                    err instanceof Error ? err.message : "Unexpected error.";
+                // 
+                setErrMsg(msg);
+                console.error("Error in fetchCountries in CountrySelector.", "Message : ", msg, "Error : ", err);
+            } finally {
+                setIsLoading(false);
+            }
         }
+
+        // 
+        fetchCountries();
     }, [])
     // Set the country data to locationCookie
     useEffect(() => {

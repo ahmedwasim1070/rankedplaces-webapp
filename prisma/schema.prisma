@@ -1,6 +1,6 @@
 generator client {
-  output   = "../src/generated"
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -9,17 +9,17 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model users {
+model Users {
   id        Int      @id @default(autoincrement())
   unique_id String   @unique
   email     String   @unique
   name      String
-  places    places[]
-  tags      tags[]
-  votes     votes[]
+  places    Places[]
+  tags      Tags[]
+  votes     Votes[]
 }
 
-model places {
+model Places {
   id               Int          @id @default(autoincrement())
   profile_id       String       @unique
   name             String       @unique
@@ -36,15 +36,15 @@ model places {
   total_up_votes   Int          @default(0)
   total_down_votes Int          @default(0)
   added_by_id      Int
-  user             users        @relation(fields: [added_by_id], references: [id])
+  user             Users        @relation(fields: [added_by_id], references: [id])
   place_tags       place_tags[]
 }
 
-model tags {
+model Tags {
   id         Int          @id @default(autoincrement())
   name       String       @unique
   author_id  Int
-  author     users        @relation(fields: [author_id], references: [id])
+  author     Users        @relation(fields: [author_id], references: [id])
   place_tags place_tags[]
 }
 
@@ -52,22 +52,22 @@ model place_tags {
   id       Int    @id @default(autoincrement())
   place_id Int
   tag_id   Int
-  place    places @relation(fields: [place_id], references: [id])
-  tag      tags   @relation(fields: [tag_id], references: [id])
+  place    Places @relation(fields: [place_id], references: [id])
+  tag      Tags   @relation(fields: [tag_id], references: [id])
 
   up_votes   Int @default(0)
   down_votes Int @default(0)
 
-  votes votes[]
+  votes Votes[]
 
   @@unique([place_id, tag_id])
 }
 
-model votes {
-  id          Int       @id @default(autoincrement())
-  vote_type   vote_type
+model Votes {
+  id          Int      @id @default(autoincrement())
+  vote_type   VoteType
   voted_by_id Int
-  user        users     @relation(fields: [voted_by_id], references: [id])
+  user        Users    @relation(fields: [voted_by_id], references: [id])
 
   place_tag_id Int
   place_tags   place_tags @relation(fields: [place_tag_id], references: [id])
@@ -75,7 +75,7 @@ model votes {
   @@unique([voted_by_id, place_tag_id])
 }
 
-enum vote_type {
+enum VoteType {
   UP
   DOWN
 }

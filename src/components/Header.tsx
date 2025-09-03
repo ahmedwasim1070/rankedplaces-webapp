@@ -51,7 +51,7 @@ function Header() {
                     {/* Nav Items */}
                     {navigationItems.map((nav, idx) => (
                         <li key={idx} className="list-none">
-                            <Link className={`font-semibold text-secondary hover:text-primary underline-animation ${nav.isActive && 'text-primary'}`} href={nav.href}>{nav.label}</Link>
+                            <Link className={`font-semibold hover:text-primary underline-animation ${nav.isActive ? 'text-secondary' : 'text-primary'}`} href={nav.href}>{nav.label}</Link>
                         </li>
                     ))}
                     {pathname !== '/' &&

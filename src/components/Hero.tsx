@@ -3,10 +3,11 @@
 // Imports
 import { Search } from "lucide-react";
 import Image from "next/image";
+// Components
+import SigninBtn from "./SigninBtn";
+import AddtagBtn from "./CreateTagBtn";
 // Providers
 import { useLocationProvider } from "@/providers/LocationProvider";
-import SigninBtn from "./SigninBtn";
-import AddtagBtn from "./CreatetagBtn";
 
 // 
 function Hero() {

@@ -22,34 +22,6 @@ function CitySelector() {
     // Error message 
     const [errMsg, setErrMsg] = useState<string | null>(null);
 
-    // Fetch city from (/api/fetchCities)
-    const fetchCities = async () => {
-        // 
-        setIsLoading(true);
-        // 
-        setErrMsg(null);
-        try {
-            const res = await fetch(`/api/fetch-cities/?country-code=${locationCookieData?.countryCode}`);
-            if (!res.ok) {
-                const errData = (await res.json()) as ApiResponse<never>;
-                throw new Error(errData.message);
-            }
-
-            const data = (await res.json()) as ApiResponse<CitiesResponse[]>;
-            if (data.success) {
-                setCities(data.data);
-            }
-        } catch (err) {
-            // Message
-            const msg =
-                err instanceof Error ? err.message : "Unexpected error.";
-            // 
-            setErrMsg(msg);
-            console.error("Error in fetchCountries in CountrySelector.", "Message : ", msg, "Error : ", err);
-        } finally {
-            setIsLoading(false);
-        }
-    }
     // Handle selection
     const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selected = e.target.value;
@@ -60,9 +32,35 @@ function CitySelector() {
     // Effects
     // Fetch cities if not any 
     useEffect(() => {
-        if (!cities) {
-            fetchCities();
+        // Fetch city from (/api/fetchCities)
+        const fetchCities = async () => {
+            // 
+            setIsLoading(true);
+            // 
+            setErrMsg(null);
+            try {
+                const res = await fetch(`/api/fetch-cities/?country-code=${locationCookieData?.countryCode}`);
+                if (!res.ok) {
+                    const errData = (await res.json()) as ApiResponse<never>;
+                    throw new Error(errData.message);
+                }
+
+                const data = (await res.json()) as ApiResponse<CitiesResponse[]>;
+                if (data.success) {
+                    setCities(data.data);
+                }
+            } catch (err) {
+                // Message
+                const msg =
+                    err instanceof Error ? err.message : "Unexpected error.";
+                // 
+                setErrMsg(msg);
+                console.error("Error in fetchCities in CitySelector.", "Message : ", msg, "Error : ", err);
+            } finally {
+                setIsLoading(false);
+            }
         }
+        fetchCities();
     }, []);
     // Update locationCookieData
     useEffect(() => {
@@ -74,7 +72,7 @@ function CitySelector() {
     return (
         <select
             value={selectedCity?.name || locationCookieData?.defaultCity}
-            className={'max-w-44 cursor-pointer bg-background text-secondary rounded-xl px-2 font-semibold focus:outline-none focus:ring-2 focus:ring-secondary transition-all'}
+            className={'max-w-44 cursor-pointer bg-background text-primary rounded-xl px-2 font-semibold focus:outline-none focus:ring-2 focus:ring-secondary transition-all'}
             disabled={isLoading || !!errMsg || !cities}
             onChange={handleSelect}
         >

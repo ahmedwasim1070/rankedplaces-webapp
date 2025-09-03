@@ -44,11 +44,11 @@ export const authOptions: NextAuthOptions = {
 
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        token.userId = account.providerAccountId;
+        token.unique_id = account.providerAccountId;
         token.guest = false;
       }
 
-      if (token.userId && !token.guest) {
+      if (token.unique_id && !token.guest) {
         const dbUser = await prisma.users.findUnique({
           where: { unique_id: token.unique_id },
         });

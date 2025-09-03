@@ -34,30 +34,6 @@ function TagCarousel() {
     // Loader
     const [isFetching, setIsFetching] = useState<boolean>(false);
 
-    // Fetch all the top tags
-    const fetchTopTags = async () => {
-
-        setIsFetching(true);
-        try {
-            const res = await fetch(`/api/fetch-tags`);
-            if (!res.ok) {
-                const errData = (await res.json()) as ApiResponse<never>;
-                throw new Error(errData.message);
-            }
-
-            const data = (await res.json()) as ApiResponse<never>;
-            if (data.success) {
-            }
-        } catch (err) {
-            // Message
-            const msg =
-                err instanceof Error ? err.message : "Unexpected error.";
-            // 
-            console.error("Error in fetchCountries in CountrySelector.", "Message : ", msg, "Error : ", err);
-        } finally {
-            setIsFetching(false);
-        }
-    }
     // handleScroll
     const handleScroll = (direction: string) => {
         const slider = sliderRef.current as HTMLElement | null;
@@ -108,10 +84,32 @@ function TagCarousel() {
     // Effects
     // load fetchTopTags if there is no tags loaded
     useEffect(() => {
-        if (!tags) {
-            fetchTopTags();
+        // Fetch all the top tags
+        const fetchTopTags = async () => {
+
+            setIsFetching(true);
+            try {
+                const res = await fetch(`/api/fetch-tags`);
+                if (!res.ok) {
+                    const errData = (await res.json()) as ApiResponse<never>;
+                    throw new Error(errData.message);
+                }
+
+                const data = (await res.json()) as ApiResponse<worldFetchTagsResponse | countryFetchsTagResponse | cityFetchTagsResponse>;
+                if (data.success) {
+                }
+            } catch (err) {
+                // Message
+                const msg =
+                    err instanceof Error ? err.message : "Unexpected error.";
+                // 
+                console.error("Error in fetchTopTags in TagCarousel.", "Message : ", msg, "Error : ", err);
+            } finally {
+                setIsFetching(false);
+            }
         }
-    }, [])
+        fetchTopTags();
+    }, []);
 
     return (
         <section className="min-w-full py-2 flex flex-row items-center overflow-x-hidden px-2">
