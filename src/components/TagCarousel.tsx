@@ -108,7 +108,6 @@ function TagCarousel() {
                 setIsFetching(false);
             }
         }
-        fetchTopTags();
     }, []);
 
     return (

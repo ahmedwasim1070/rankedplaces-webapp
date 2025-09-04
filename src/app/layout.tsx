@@ -50,6 +50,7 @@ export default async function RootLayout({
             {/* Footer */}
             <Footer />
           </GlobalProvider>
+
         </LocationProvider>
       </body>
     </html>
