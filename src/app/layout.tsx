@@ -38,9 +38,11 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
+
+        {/* Location Provider */}
         <LocationProvider initialLocation={locationCookieData}>
 
-          {/* All children wrapped inside GlobalProvider */}
+          {/* All children wrapped inside GlobalProvider all the global things goes here */}
           <GlobalProvider>
             {/* Header */}
             <Header />

@@ -1,6 +1,6 @@
 // Imports
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma/prisma";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
 // Types

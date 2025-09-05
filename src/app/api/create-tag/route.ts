@@ -1,7 +1,7 @@
 // Imports
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma/prisma";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
 import tagFormValidator from "@/lib/api/validators/tagForm.validator";

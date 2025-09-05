@@ -1,19 +1,18 @@
 'use client';
 
 // Imports
-import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react"
+import React, { createContext, ReactNode, useContext, useMemo, useState } from "react"
 import { Toaster } from "react-hot-toast";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 // Provider
 import { SessionProvider } from "next-auth/react";
 // Components
 import Loader from "@/components/Loader";
 import SigninPopup from "@/components/SigninPopup";
 import CreateTagPopup from "@/components/CreateTagPopup";
-import { param } from "motion/react-client";
 
 // Interfaces
-interface GloabalProvider {
+interface GloabalProviderTypes {
     pathname: string;
     isLoading: boolean;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -25,7 +24,7 @@ interface GlobalProviderProps {
 }
 
 // Context
-const GlobalContext = createContext<GloabalProvider | undefined>(undefined);
+const GlobalContext = createContext<GloabalProviderTypes | undefined>(undefined);
 
 // 
 export const GlobalProvider = ({ children }: GlobalProviderProps) => {
@@ -39,13 +38,13 @@ export const GlobalProvider = ({ children }: GlobalProviderProps) => {
     // Popup screen state for tag-creation
     const [isCreateTagPop, setIsCreateTagPop] = useState(false);
 
-    // Value
-    const value = useMemo(() => ({
+    // Values
+    const values = useMemo(() => ({
         pathname, isLoading, setIsLoading, setIsSigninPopup, setIsCreateTagPop
     }), [pathname, isLoading, setIsLoading, setIsSigninPopup, setIsCreateTagPop])
 
     return (
-        <GlobalContext.Provider value={value}>
+        <GlobalContext.Provider value={values}>
             {/* Toast Notify */}
             <Toaster />
 
@@ -74,7 +73,7 @@ export const GlobalProvider = ({ children }: GlobalProviderProps) => {
 }
 
 // Hook to fetch provider data
-export const useGlobalProvider = (): GloabalProvider => {
+export const useGlobalProvider = (): GloabalProviderTypes => {
     const context = useContext(GlobalContext);
     if (context === undefined) {
         throw new Error('useGlobalProvider must be used within a GlobalProvider');

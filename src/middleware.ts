@@ -5,6 +5,7 @@ import { getToken } from "next-auth/jwt";
 import { ApiResponse } from "./types";
 
 // Routes
+// auth required routes
 const protectedRoutes = ["/api/create-tag"];
 
 //
@@ -36,7 +37,7 @@ export async function middleware(request: NextRequest) {
         { status: 401 }
       );
     }
-  }
 
-  return NextResponse.next();
+    return NextResponse.next();
+  }
 }
