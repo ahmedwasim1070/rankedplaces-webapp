@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Users {
+  id        Int      @id @default(autoincrement())
+  unique_id String   @unique
+  email     String   @unique
+  name      String
+  places    Places[]
+  tags      Tags[]
+  votes     Votes[]
+}
+
+model Places {
+  id               Int          @id @default(autoincrement())
+  profile_id       String       @unique
+  name             String       @unique
+  pfp              String       @unique
+  category         String
+  address          String
+  city             String
+  country          String
+  phone            String
+  website          String
+  maps_url         String       @unique
+  review_value     Float
+  review_amount    Int
+  total_up_votes   Int          @default(0)
+  total_down_votes Int          @default(0)
+  added_by_id      Int
+  user             Users        @relation(fields: [added_by_id], references: [id])
+  place_tags       place_tags[]
+}
+
+model Tags {
+  id         Int          @id @default(autoincrement())
+  name       String       @unique
+  author_id  Int
+  author     Users        @relation(fields: [author_id], references: [id])
+  place_tags place_tags[]
+}
+
+model place_tags {
+  id       Int    @id @default(autoincrement())
+  place_id Int
+  tag_id   Int
+  place    Places @relation(fields: [place_id], references: [id])
+  tag      Tags   @relation(fields: [tag_id], references: [id])
+
+  up_votes   Int @default(0)
+  down_votes Int @default(0)
+
+  votes Votes[]
+
+  @@unique([place_id, tag_id])
+}
+
+model Votes {
+  id          Int      @id @default(autoincrement())
+  vote_type   VoteType
+  voted_by_id Int
+  user        Users    @relation(fields: [voted_by_id], references: [id])
+
+  place_tag_id Int
+  place_tags   place_tags @relation(fields: [place_tag_id], references: [id])
+
+  @@unique([voted_by_id, place_tag_id])
+}
+
+enum VoteType {
+  UP
+  DOWN
+}
