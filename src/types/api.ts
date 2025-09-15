@@ -18,8 +18,6 @@ export type CountryResponse = {
   country: string;
   countryCode: string;
   capital: string;
-  lat: number;
-  lng: number;
 };
 
 // FetchTags Responses
@@ -62,20 +60,23 @@ export type cityFetchTagsResponse = Prisma.TagsGetPayload<{
   };
 }>;
 
-// fetch/ip-geo-data response
+// Response of fetch/ip-geo-data
 export type IpGeoDataResponse = {
   country: string;
   countryCode: string;
-  capital: string;
+};
+
+// Response of fetch/lat-n-lng-data
+export type LatNLngDataResponse = {
+  country: string;
+  countryCode: string;
+  city: string;
   lat: number;
   lng: number;
 };
 
-// fetch/lat-n-lng-data
-export type LatNLngResponse = {
-  country: string;
-  countryCode: string;
-  defaultCity: string;
+export type CapitalReponse = {
+  city: string;
   lat: number;
   lng: number;
 };

@@ -1,12 +1,12 @@
 'use client';
 
 // Imports
-import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState, useCallback, Provider } from "react"
+import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState, useCallback } from "react"
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 // Component
 import CountrySelector from "@/components/CountrySelector";
 // Types
-import { ApiResponse, IpGeoDataResponse, LatNLngResponse, LocationCookieData } from "@/types";
+import { ApiResponse, IpGeoDataResponse, LatNLngDataResponse, LocationCookieData } from "@/types";
 
 // Interfaces
 interface ProviderProps {
@@ -14,7 +14,7 @@ interface ProviderProps {
     setLocationCookieData: React.Dispatch<React.SetStateAction<LocationCookieData | null>>
     isLocationProviderLoading: boolean;
     urlParams: UrlParams;
-    setParam: (key: keyof UrlParams, value: string) => void;
+    setParams: (keys: Array<keyof UrlParams>, values: [string]) => void;
 }
 interface Props {
     children: ReactNode;
@@ -56,11 +56,11 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
             tag: allParams.tag ?? "all",
             page: allParams.page ?? "1",
             country: allParams.country ?? locationCookieData?.countryCode ?? null,
-            city: allParams.city ?? locationCookieData?.defaultCity ?? locationCookieData?.capital ?? null,
+            city: allParams.city ?? locationCookieData?.city ?? null,
             lat: allParams.lat ?? locationCookieData?.lat ?? null,
             lng: allParams.lng ?? locationCookieData?.lng ?? null,
         };
-    }, [searchParams, initialLocation]);
+    }, [searchParams, initialLocation, locationCookieData]);
 
     // Updates cookie if the cookie state changes
     const updateCookie = () => {
@@ -70,17 +70,20 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
         document.cookie = `user_location=${encodeURIComponent(JSON.stringify(locationCookieData))}; expires=${expires.toUTCString()}; path=/`;
     }
     // Set Params
-    const setParam = useCallback((key: keyof UrlParams, value: string) => {
+    const setParams = useCallback((keys: Array<keyof UrlParams>, values: [string]) => {
         const newParams = new URLSearchParams(searchParams.toString());
 
-        if (value) newParams.set(key, value);
-        else newParams.delete(key);
+        keys.map((key, idx) => {
+            newParams.set(key, values[idx]);
+        });
 
         router.push(`?${newParams.toString()}`);
     }, [router, searchParams]);
     // Fetch Ip Location 
     const fetchIpLocation = async (): Promise<IpGeoDataResponse | null> => {
         if (pathname === "/top-country-places") {
+            setIsLocationProviderLoading(true);
+
             try {
                 const res = await fetch(`/api/fetch/ip-geo-data`);
                 const data = (await res.json()) as ApiResponse<IpGeoDataResponse | never>;
@@ -99,72 +102,136 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
                 // 
                 console.error("Error in fetchIpLocation in LocationProvider.", "Message : ", msg, "Error : ", err);
                 return null;
+            } finally {
+                setIsLocationProviderLoading(false);
             }
         }
         return null;
     }
     // Fetch Lat and Lng Location
-    const fetchLatnLngLocation = async (): Promise<LatNLngResponse | null> => {
-        if (pathname === '/top-city-places' && locationCookieData?.defaultCity) {
-            try {
-                const res = await fetch(`/api/fetch/lat-n-lng-data`);
+    const fetchLatnLngLocation = async (): Promise<LatNLngDataResponse | null> => {
+        return new Promise((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
 
-                const data = (await res.json()) as ApiResponse<LatNLngResponse | never>;
+                    setIsLocationProviderLoading(true);
+                    try {
+                        const res = await fetch(`/api/fetch/lat-n-lng-data/?lat=${latitude}&lng=${longitude}`);
+                        const data = (await res.json()) as ApiResponse<LatNLngDataResponse | never>;
 
-                if (!data.success) {
-                    throw new Error(data.message);
+                        if (!data.success) {
+                            throw new Error(data.message);
+                        }
+
+                        resolve(data.data);
+
+                    } catch (err) {
+                        const msg = err instanceof Error ? err.message : "Unexpected error.";
+                        console.error("Error in fetchLatnLngLocation API call.", "Message:", msg, "Error:", err);
+                        resolve(null);
+                    } finally {
+                        setIsLocationProviderLoading(false);
+                    }
+                },
+                (err) => {
+                    const msg = err instanceof GeolocationPositionError
+                        ? `Geolocation error (Code: ${err.code}): ${err.message}`
+                        : "Unexpected geolocation error.";
+
+                    console.error("Error in Navigator geolocation in fetchLatnLngLocation.", "Message:", msg, "Error:", err);
+                    resolve(null);
+                },
+                {
+                    timeout: 30000,
+                    maximumAge: 0,
                 }
+            );
+        });
+    };
 
-                if (data.success) {
-                    return data.data;
+    // Effect 
+    // Apply param's on load
+    useEffect(() => {
+        const applyUrlParams = async () => {
+            const params = new URLSearchParams(searchParams.toString());
+            let changed = false;
+
+            // Always ensure basic params exist
+            if (!params.has("tag")) {
+                params.set("tag", urlParams.tag);
+                changed = true;
+            }
+            if (!params.has("page")) {
+                params.set("page", urlParams.page);
+                changed = true;
+            }
+
+            // Handle country-specific route
+            if (pathname === "/top-country-places") {
+                if (!params.has("country")) {
+                    if (!urlParams.country) {
+                        if (!locationCookieData || !locationCookieData.countryCode) {
+                            const userIpLocation = await fetchIpLocation();
+                            if (userIpLocation) {
+                                changed = true;
+                                params.set("country", userIpLocation.countryCode);
+                                setLocationCookieData(userIpLocation);
+                            } else {
+                                setIsCountrySelector(true);
+                            }
+                        }
+                    } else {
+                        changed = true;
+                        params.set("country", urlParams.country);
+                    }
                 }
-            } catch (err) {
-                // Message
-                const msg =
-                    err instanceof Error ? err.message : "Unexpected error.";
-                // 
-                console.error("Error in fetchIpLocation in LocationProvider.", "Message : ", msg, "Error : ", err);
-                return null;
+            }
+
+            // Handle city-specific route
+            if (pathname === "/top-city-places") {
+                if (!params.has("country") || !params.has("city") || !params.has("lat") || !params.has("lng")) {
+                    if (
+                        !urlParams.country ||
+                        !urlParams.city ||
+                        !urlParams.lat ||
+                        !urlParams.lng
+                    ) {
+                        if (!locationCookieData ||
+                            !locationCookieData.country ||
+                            !locationCookieData.city ||
+                            !locationCookieData.lat ||
+                            !locationCookieData.lng
+                        ) {
+                            const userLatnLngLocation = await fetchLatnLngLocation();
+                            if (userLatnLngLocation) {
+                                changed = true;
+                                params.set("country", userLatnLngLocation.countryCode);
+                                params.set("city", userLatnLngLocation.city);
+                                params.set("lat", userLatnLngLocation.lat.toString());
+                                params.set("lng", userLatnLngLocation.lng.toString());
+                                setLocationCookieData(userLatnLngLocation);
+                            } else {
+                                setIsCountrySelector(true);
+                            }
+                        }
+                    } else {
+                        changed = true;
+                        params.set("country", urlParams.country);
+                        params.set("city", urlParams.city);
+                        params.set("lat", urlParams.lat);
+                        params.set("lng", urlParams.lng);
+                    }
+                }
+            }
+
+            if (changed) {
+                router.replace(`${pathname}?${params.toString()}`);
             }
         };
 
-        return null;
-    }
-    // Set's Cookie Data
-    const applyLocationParams = async (params: URLSearchParams) => {
-        if (!locationCookieData || !locationCookieData.country || locationCookieData.defaultCity) {
-            // 
-            setIsLocationProviderLoading(true);
-
-            try {
-                const ipLocation = await fetchIpLocation();
-                if (ipLocation) {
-                    setLocationCookieData(ipLocation);
-                } else {
-                }
-            } catch (err) {
-            } finally {
-                setIsLocationProviderLoading(false);
-            }
-        }
-    }
-
-    // Effect 
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams.toString());
-        let changed = false;
-
-        if (!params.has("tag")) { params.set("tag", urlParams.tag); changed = true; }
-        if (!params.has("page")) { params.set("page", urlParams.page); changed = true; }
-
-        if (pathname === '/top-country-places' || pathname === '/top-city-places') {
-            if (!params.has('country') || !params.has('city')) {
-                applyLocationParams(params);
-            }
-        }
-
-        if (changed) router.replace(`?${params.toString()}`);
-    }, []);
+        applyUrlParams();
+    }, [pathname, searchParams]);
     // Update Location Cookie if locationCookieData Changes
     useEffect(() => {
         if (!locationCookieData)
@@ -174,15 +241,19 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
 
         const timeout = setTimeout(() => {
             updateCookie();
+            setIsLocationProviderLoading(false);
         }, 200);
 
-        setIsLocationProviderLoading(false);
-        return () => clearTimeout(timeout);
+        return () => {
+            clearTimeout(timeout);
+            setIsLocationProviderLoading(false);
+
+        };
     }, [locationCookieData]);
 
     // Values
     const values = useMemo(() => ({
-        locationCookieData, setLocationCookieData, isLocationProviderLoading, urlParams, setParam
+        locationCookieData, setLocationCookieData, isLocationProviderLoading, urlParams, setParams
     }), [locationCookieData, isLocationProviderLoading, urlParams])
 
     return (

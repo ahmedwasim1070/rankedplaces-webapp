@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
+    console.log(data);
     if (
       !data ||
       !data.country_name ||
@@ -52,9 +53,6 @@ export async function GET(request: NextRequest) {
     const userIpGeoData: IpGeoDataResponse = {
       country: data.country,
       countryCode: data.country_code2,
-      capital: data.capital,
-      lat: data.latitude,
-      lng: data.longitude,
     };
 
     return NextResponse.json<ApiResponse<IpGeoDataResponse>>({

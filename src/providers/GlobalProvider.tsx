@@ -52,7 +52,10 @@ export const GlobalProvider = ({ children }: Props) => {
             <Toaster />
 
             {/* Global Loader */}
-            {isLoading || isLocationProviderLoading &&
+            {isLoading &&
+                <Loader fullscreen={true} />
+            }
+            {isLocationProviderLoading &&
                 <Loader fullscreen={true} />
             }
 

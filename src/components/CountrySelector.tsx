@@ -4,7 +4,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 // Types
-import { CountryResponse } from "@/types";
+import { ApiResponse, CapitalReponse, CountryResponse } from "@/types";
 // Porviders
 import { useLocationProvider } from "@/providers/LocationProvider";
 
@@ -17,7 +17,7 @@ interface Props {
 function CountrySelector({ setIsCountrySelector }: Props) {
     // Providers
     // Location
-    const { locationCookieData, setLocationCookieData, setParam, urlParams } = useLocationProvider();
+    const { locationCookieData, setLocationCookieData, setParams } = useLocationProvider();
     // States
     // Country data state
     const [countries, setCountries] = useState<CountryResponse[] | null>(null);
@@ -25,6 +25,8 @@ function CountrySelector({ setIsCountrySelector }: Props) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     // Error message 
     const [errMsg, setErrMsg] = useState<string | null>(null);
+    // is fetching and setting capital
+    const [isFetchingCapital, setIsFetchingCapital] = useState<boolean>(false);
 
     // Nav Contents
     const navigationItems = [
@@ -33,39 +35,59 @@ function CountrySelector({ setIsCountrySelector }: Props) {
             label: 'Top World Places',
         },
     ]
+    // Fetch and set Capital
+    const fetchCapital = async (capital: string): Promise<CapitalReponse | null> => {
+        setIsFetchingCapital(true);
+        try {
+            const res = await fetch(`/api/fetch/capital/?&capital=${capital}`);
+            const data = (await res.json()) as ApiResponse<CapitalReponse | never>;
+
+            if (!data.success) {
+                throw new Error(data.message);
+            }
+
+            if (data.success) {
+                return data.data;
+            }
+        } catch (err) {
+            const msg =
+                err instanceof Error ? err.message : "Unexpected error.";
+            // 
+            console.error("Error in fetchCountries in CountrySelector.", "Message : ", msg, "Error : ", err);
+            return null;
+        } finally {
+            setIsFetchingCapital(false);
+        }
+    }
     // Handle selection
     const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const selected = JSON.parse(e.target.value);
-        setIsCountrySelector(false);
-        setLocationCookieData({
-            ...selected,
-            defaultCity: selected.capital,
-        });
-        if (!urlParams.country || !urlParams.city) {
-            setParam('country', selected.countryCode);
-            setParam('city', selected.capital);
-        }
+        const selectedCountry: CountryResponse = JSON.parse(e.target.value);
+        fetchCapital(selectedCountry.capital);
     };
 
     // Effects
     // Fetch countries if not any
     useEffect(() => {
-        // Fetch country from (/public/data/countries.json)
         const fetchCountries = async () => {
+            if (countries) return;
+
             // 
             setIsLoading(true);
             // 
             setErrMsg(null);
             try {
-                const res = await fetch('/data/countries.json');
-                if (!res.ok) {
-                    throw new Error("Failed to fetch countries.")
+                const res = await fetch('/api/fetch/countries');
+                const data = (await res.json()) as ApiResponse<CountryResponse[] | never>;
+
+                if (!data.success) {
+                    throw new Error(data.message);
                 }
 
-                const data = await res.json();
-                setCountries(data);
+                if (data.success) {
+                    setCountries(data.data);
+                }
+
             } catch (err) {
-                // Message
                 const msg =
                     err instanceof Error ? err.message : "Unexpected error.";
                 // 

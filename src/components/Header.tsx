@@ -56,7 +56,7 @@ function Header() {
                     ))}
                     {pathname === '/top-city-places' &&
                         <li className="list-none">
-                            <CitySelector />
+                            <CitySelector changeDefault={false} />
                         </li>
                     }
                 </ul>

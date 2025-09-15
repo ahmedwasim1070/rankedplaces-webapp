@@ -7,11 +7,16 @@ import { ApiResponse, CitiesResponse } from "@/types";
 // Porviders
 import { useLocationProvider } from "@/providers/LocationProvider";
 
+// Interface
+interface Props {
+    changeDefault: boolean;
+};
+
 // 
-function CitySelector() {
+function CitySelector({ changeDefault }: Props) {
     // Providers
     // Location
-    const { urlParams, setParam } = useLocationProvider();
+    const { locationCookieData, setLocationCookieData, urlParams, setParams } = useLocationProvider();
     // States
     // Cities
     const [cities, setCities] = useState<CitiesResponse[] | null>(() => {
@@ -38,7 +43,10 @@ function CitySelector() {
         const selected = e.target.value;
         const selectedCityData = cities?.find((city) => city.name === selected) || null;
         if (!selectedCityData || !selectedCityData.name || !selectedCityData.lat || !selectedCityData.lng) return;
-        setParam('city', selectedCityData.name);
+        setParams(['city'], [selectedCityData.name]);
+        if (changeDefault && locationCookieData) {
+            setLocationCookieData({ ...locationCookieData, city: selectedCityData.name, lat: selectedCityData.lat, lng: selectedCityData.lng });
+        }
     };
 
     // Effects
@@ -54,7 +62,7 @@ function CitySelector() {
             // 
             setErrMsg(null);
             try {
-                const res = await fetch(`/api/fetch/cities/?country-code=${urlParams.country}`);
+                const res = await fetch(`/api/fetch/cities/?country=${urlParams.country}`);
                 const data = (await res.json()) as ApiResponse<CitiesResponse[] | never>;
 
                 if (!data.success) {

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
 // Types
-import { ApiResponse, LatNLngResponse } from "@/types";
+import { ApiResponse, LatNLngDataResponse } from "@/types";
 
 //
 export async function GET(request: NextRequest) {
@@ -33,30 +33,34 @@ export async function GET(request: NextRequest) {
     if (
       !locationData ||
       !locationData.components.country ||
-      !locationData.components.country_code ||
+      !locationData.components["ISO_3166-1_alpha-2"] ||
       !locationData.components.city ||
       !locationData.components.town ||
       !locationData.components.village ||
+      !locationData.components.municipality ||
+      !locationData.components.state ||
       !locationData.geometry.lat ||
       !locationData.geometry.lng
     ) {
       throw new ApiError("Error from external api.Incomplete Response.", 404);
     }
 
-    const latNLngResponsePayload: LatNLngResponse = {
+    const userLocationData: LatNLngDataResponse = {
       country: locationData.components.country,
-      countryCode: locationData.components.country_code,
-      defaultCity:
+      countryCode: locationData.components["ISO_3166-1_alpha-2"],
+      city:
         locationData.components.city ||
         locationData.components.town ||
-        locationData.components.village,
-      lat: locationData.geometry.lat,
-      lng: locationData.geometry.lng,
+        locationData.components.village ||
+        locationData.components.municipality ||
+        locationData.components.state,
+      lat: parseFloat(locationData.geometry.lat),
+      lng: parseFloat(locationData.geometry.lng),
     };
 
-    return NextResponse.json<ApiResponse<LatNLngResponse>>({
+    return NextResponse.json<ApiResponse<LatNLngDataResponse>>({
       success: true,
-      data: latNLngResponsePayload,
+      data: userLocationData,
       message: "Successfully fetchedLatNLngData",
     });
   } catch (error) {

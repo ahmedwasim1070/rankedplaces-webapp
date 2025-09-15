@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
 // Types
-import { ApiResponse, CitiesResponse } from "@/types";
+import { ApiResponse, CapitalReponse } from "@/types";
+import { stringify } from "querystring";
 
-//
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   try {
@@ -13,35 +13,35 @@ export async function GET(request: NextRequest) {
       throw new ApiError("Server Configuration Error.", 500);
     }
 
-    const country = searchParams.get("country");
-    if (!country || country.length < 2) {
+    const capital = searchParams.get("capital");
+    if (!capital) {
       throw new ApiError("Country code is required.", 404);
     }
 
     const response = await fetch(
-      `http://api.geonames.org/searchJSON?country=${country}&featureClass=P&orderby=population&maxRows=150&username=${process.env.GEONAME_USERNAME}`
+      `http://api.geonames.org/searchJSON?q=${capital}&maxRows=1&username=${process.env.GEONAME_USERNAME}`
     );
     if (!response.ok) {
       throw new ApiError("Error from external api.", response.status);
     }
 
     const data = await response.json();
+    const locationData = data.geonames[0];
 
-    const geoData = data?.geonames;
-    if (!geoData || geoData.length === 0) {
+    if (!locationData) {
       throw new ApiError("Error from external api.Incomplelete Response.", 404);
     }
 
-    const cityData: CitiesResponse[] = geoData.map((cityInfo: any) => ({
-      name: cityInfo.name,
-      lat: parseFloat(cityInfo.lat),
-      lng: parseFloat(cityInfo.lng),
-    }));
+    const capitalData: CapitalReponse = {
+      city: locationData.name,
+      lat: parseFloat(locationData.lat),
+      lng: parseFloat(locationData.lng),
+    };
 
-    return NextResponse.json<ApiResponse<CitiesResponse[]>>({
+    return NextResponse.json<ApiResponse<CapitalReponse>>({
       success: true,
-      data: cityData,
-      message: "Successfully fetchedCities.",
+      data: capitalData,
+      message: "Successfully fetchedCountries.",
     });
   } catch (error) {
     // Message
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     const status = error instanceof ApiError ? error.status : 500;
     // Console
     console.error(
-      "Error in fetch/cities.",
+      "Error in fetch/capital.",
       "Message : ",
       message,
       "Error : ",
