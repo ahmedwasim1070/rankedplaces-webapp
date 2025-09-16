@@ -45,7 +45,7 @@ function CreateTagPopup() {
 
         setIsSubmiting(true);
         try {
-            const res = await fetch(`/api/create-tag`, {
+            const res = await fetch(`/api/create/tag`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

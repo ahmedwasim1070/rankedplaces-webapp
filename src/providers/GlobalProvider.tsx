@@ -44,7 +44,7 @@ export const GlobalProvider = ({ children }: Props) => {
     // Values
     const values = useMemo(() => ({
         pathname, isLoading, setIsLoading, setIsSigninPopup, setIsCreateTagPop
-    }), [pathname, isLoading, setIsLoading, setIsSigninPopup, setIsCreateTagPop])
+    }), [pathname, isLoading,])
 
     return (
         <GlobalContext.Provider value={values}>

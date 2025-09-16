@@ -1,5 +1,7 @@
 // Imports
 import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
 import { prisma } from "@/lib/prisma/prisma";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
@@ -41,8 +43,8 @@ export async function GET(request: NextRequest) {
         data: tags,
       });
     } else if (fetchBy === "country") {
-      const country = searchParams.get("country");
-      if (!country) {
+      const countryCode = searchParams.get("country-code");
+      if (!countryCode) {
         throw new ApiError(
           "Country code is required with country fetchBy.",
           400
@@ -53,7 +55,7 @@ export async function GET(request: NextRequest) {
         where: {
           place_tags: {
             some: {
-              place: { country },
+              place: { country_code: countryCode },
             },
           },
         },
@@ -62,7 +64,7 @@ export async function GET(request: NextRequest) {
             select: {
               place_tags: {
                 where: {
-                  place: { country },
+                  place: { country_code: countryCode },
                 },
               },
             },
@@ -82,44 +84,40 @@ export async function GET(request: NextRequest) {
         data: tags,
       });
     } else if (fetchBy === "city") {
-      const country = searchParams.get("country");
-      if (!country) {
+      const countryCode = searchParams.get("country-code");
+      if (
+        !countryCode ||
+        typeof countryCode !== "string" ||
+        countryCode.length > 2
+      ) {
         throw new ApiError("Country code is required with city fetchBy.", 400);
       }
 
-      const city = searchParams.get("city");
-      if (!city) {
-        throw new ApiError("City code is required with city fetchBy.", 400);
+      const lat = parseFloat(searchParams.get("lat") || "0");
+      const lng = parseFloat(searchParams.get("lng") || "0");
+      const radiusMeters = 50000;
+      if (!lat || !lng || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        throw new ApiError(
+          "Latitude and Longitude is Invalid or Missing which is required city fetchBy.",
+          400
+        );
       }
 
-      const tags: cityFetchTagsResponse[] = await prisma.tags.findMany({
-        where: {
-          place_tags: {
-            some: {
-              place: {
-                country,
-                city,
-              },
-            },
-          },
-        },
-        include: {
-          _count: {
-            select: {
-              place_tags: {
-                where: {
-                  place: { country, city },
-                },
-              },
-            },
-          },
-        },
-        orderBy: {
-          place_tags: {
-            _count: "desc",
-          },
-        },
-      });
+      // Read sql file
+      const findTagsQuery = fs.readFileSync(
+        path.join(process.cwd(), "src/db/sql/find_tags_by_radius.sql"),
+        "utf8"
+      );
+
+      const tags: cityFetchTagsResponse[] = await prisma.$queryRawUnsafe<any[]>(
+        findTagsQuery,
+        lng,
+        lat,
+        radiusMeters
+      );
+
+      console.log(tags);
+
       return NextResponse.json<ApiResponse<cityFetchTagsResponse[]>>({
         success: true,
         message: "Successfully fetched tags.",

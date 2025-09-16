@@ -8,12 +8,15 @@ import SigninBtn from "./SigninBtn";
 import AddtagBtn from "./CreateTagBtn";
 // Providers
 import { useLocationProvider } from "@/providers/LocationProvider";
+import { useGlobalProvider } from "@/providers/GlobalProvider";
 
 // 
 function Hero() {
     // Provider
     // Location
     const { urlParams } = useLocationProvider();
+    // Global
+    const { pathname } = useGlobalProvider();
 
     return (
         <main role="main" className="min-w-screen py-14 flex flex-col items-center bg-gradient-to-b from-background to-white gap-y-4">
@@ -45,7 +48,7 @@ function Hero() {
                 </div>
 
                 <p className="text-secondary my-2 md:text-md xxs:text-sm">
-                    Searching in <strong className="text-primary">{urlParams?.city}</strong> , <strong>{urlParams?.country}</strong>
+                    Searching in <strong className="text-primary">{pathname === "/" ? "World" : pathname === "/top-country-places" ? urlParams.country : urlParams.city}</strong> , <strong>{pathname === "/top-city-places" && urlParams.country}</strong>
                 </p>
             </section>
 

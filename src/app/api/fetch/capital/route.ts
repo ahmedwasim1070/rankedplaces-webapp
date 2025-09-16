@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiError } from "@/lib/error/ApiError";
 // Types
 import { ApiResponse, CapitalReponse } from "@/types";
-import { stringify } from "querystring";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

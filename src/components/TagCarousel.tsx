@@ -6,6 +6,9 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useState, useRef, useEffect } from 'react';
 // Types
 import { ApiResponse, cityFetchTagsResponse, countryFetchsTagResponse, worldFetchTagsResponse } from '@/types';
+// Providers
+import { useGlobalProvider } from '@/providers/GlobalProvider';
+import { useLocationProvider } from '@/providers/LocationProvider';
 
 //  Loader
 const TagSkeletonLoader = () => {
@@ -26,11 +29,16 @@ const TagSkeletonLoader = () => {
 
 // 
 function TagCarousel() {
+    // Proivder's
+    // Location
+    const { urlParams, setParams } = useLocationProvider();
+    // Global
+    const { pathname } = useGlobalProvider();
     // Refs
     const sliderRef = useRef(null);
     // States
     // Tags
-    const [tags, setTags] = useState<worldFetchTagsResponse | countryFetchsTagResponse | cityFetchTagsResponse | null>(null);
+    const [tags, setTags] = useState<worldFetchTagsResponse[] | countryFetchsTagResponse[] | cityFetchTagsResponse[] | null>(null);
     // Loader
     const [isFetching, setIsFetching] = useState<boolean>(false);
 
@@ -80,23 +88,50 @@ function TagCarousel() {
             }
         }
     };
+    // generate fetch tag url
+    const getFetchTagUrl = (): string | null => {
+        let url = "/api/fetch/tags";
+        switch (pathname) {
+            case "/":
+                url = url + "/?fetch-by=world";
+                return url;
+            case "/top-country-places":
+                url = url + `/?fetch-by=country&country-code=${urlParams.country}`;
+                return url;
+            case "/top-city-places":
+                url = url + `/?fetch-by=city&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
+                return url;
+            default:
+                return null;
+        }
+    };
+    const handleTagChange = (value: string) => {
+        setParams(['tag'], [value]);
+    };
 
     // Effects
     // load fetchTopTags if there is no tags loaded
     useEffect(() => {
         // Fetch all the top tags
         const fetchTopTags = async () => {
+            if (tags) return;
 
             setIsFetching(true);
+
+            const url = getFetchTagUrl();
+            if (!url) return;
+            console.log(url);
+
             try {
-                const res = await fetch(`/api/fetch/tags`);
-                const data = (await res.json()) as ApiResponse<worldFetchTagsResponse | countryFetchsTagResponse | cityFetchTagsResponse | never>;
+                const res = await fetch(`${url}`);
+                const data = (await res.json()) as ApiResponse<worldFetchTagsResponse[] | countryFetchsTagResponse[] | cityFetchTagsResponse[] | never>;
+
                 if (!data.success) {
                     throw new Error(data.message);
                 }
 
-                if (data.success) {
-                }
+                setTags(data.data);
+
             } catch (err) {
                 // Message
                 const msg =
@@ -107,13 +142,15 @@ function TagCarousel() {
                 setIsFetching(false);
             }
         }
+
+        fetchTopTags();
     }, []);
 
     return (
         <section className="min-w-full py-2 flex flex-row items-center overflow-x-hidden px-2">
             <button
                 onClick={() => handleScroll("prev")}
-                className="bg-primary rounded-full p-1 xxs:p-2 border border-primary transition-colors hover:bg-transparent cursor-pointer"
+                className="bg-primary rounded-full p-1 xxs:p-2 border-2 border-primary transition-colors hover:bg-transparent cursor-pointer"
             >
                 <ChevronLeft className="w-6 h-6 xxs:w-8 xxs:h-8 text-secondary" />
             </button>
@@ -127,11 +164,26 @@ function TagCarousel() {
                 {isFetching && <TagSkeletonLoader />}
 
                 {/*  */}
+                {tags && (
+                    <button onClick={() => handleTagChange('All')} className={`rounded-full px-4 py-2  border-2 border-secondary  ${urlParams.tag === 'All' ? 'bg-transparent text-secondary' : 'bg-secondary text-white hover:bg-transparent hover:text-secondary transition-colors cursor-pointer'}`}>
+                        <p className='font-semibold'>
+                            All
+                        </p>
+                    </button>
+                )
+                }
+                {tags && tags.map((tag, idx) => (
+                    <button onClick={() => handleTagChange(tag.name)} key={idx} className={`rounded-full px-4 py-2  border-2 border-secondary  ${urlParams.tag === tag.name ? 'bg-transparent text-secondary' : 'bg-secondary text-white hover:bg-transparent hover:text-secondary transition-colors cursor-pointer'}`}>
+                        <p className='font-semibold'>
+                            {tag.name}
+                        </p>
+                    </button>
+                ))}
             </div>
 
             <button
                 onClick={() => handleScroll("next")}
-                className="bg-primary rounded-full p-1 xxs:p-2 border border-primary transition-colors hover:bg-transparent cursor-pointer"
+                className="bg-primary rounded-full p-1 xxs:p-2 border-2 border-primary transition-colors hover:bg-transparent cursor-pointer"
             >
                 <ChevronRight className="w-6 h-6 xxs:w-8 xxs:h-8 text-secondary" />
             </button>

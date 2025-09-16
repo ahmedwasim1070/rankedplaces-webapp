@@ -37,6 +37,8 @@ function CountrySelector({ setIsCountrySelector }: Props) {
     ]
     // Fetch and set Capital
     const fetchCapital = async (capital: string): Promise<CapitalReponse | null> => {
+        if (!capital) return null;
+
         setIsFetchingCapital(true);
         try {
             const res = await fetch(`/api/fetch/capital/?&capital=${capital}`);
@@ -46,9 +48,7 @@ function CountrySelector({ setIsCountrySelector }: Props) {
                 throw new Error(data.message);
             }
 
-            if (data.success) {
-                return data.data;
-            }
+            return data.data;
         } catch (err) {
             const msg =
                 err instanceof Error ? err.message : "Unexpected error.";
@@ -60,9 +60,25 @@ function CountrySelector({ setIsCountrySelector }: Props) {
         }
     }
     // Handle selection
-    const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleSelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedCountry: CountryResponse = JSON.parse(e.target.value);
-        fetchCapital(selectedCountry.capital);
+
+        const capitalData = await fetchCapital(selectedCountry.capital);
+        if (!capitalData) {
+            return;
+        }
+
+        const locationDataPayload = {
+            country: selectedCountry.country,
+            countryCode: selectedCountry.countryCode,
+            city: capitalData.city,
+            lat: capitalData.lat,
+            lng: capitalData.lng,
+        };
+
+        setLocationCookieData(locationDataPayload);
+        setParams(["country", 'city', 'lat', 'lng'], [locationDataPayload.countryCode, locationDataPayload.city, locationDataPayload.lat.toString(), locationDataPayload.lng.toString()]);
+        setIsCountrySelector(false);
     };
 
     // Effects
@@ -83,9 +99,7 @@ function CountrySelector({ setIsCountrySelector }: Props) {
                     throw new Error(data.message);
                 }
 
-                if (data.success) {
-                    setCountries(data.data);
-                }
+                setCountries(data.data);
 
             } catch (err) {
                 const msg =
@@ -110,34 +124,43 @@ function CountrySelector({ setIsCountrySelector }: Props) {
                 <p className="text-secondary text-lg font-semibold">Select Manually.</p>
 
                 <form className="flex flex-row space-x-4 items-center justify-center">
-                    <select
-                        value={locationCookieData?.country || ""}
-                        className="border border-secondary cursor-pointer text-secondary bg-background font-semibold rounded-xl p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary transition-all"
-                        disabled={isLoading || !!errMsg || !countries}
-                        onChange={handleSelect}
-                    >
-                        {isLoading && (
-                            <option className="text-white bg-secondary" hidden>Loading countries...</option>
-                        )}
-
-                        <option hidden>
-                            Select Country
-                        </option>
-
-                        {errMsg && (
-                            <option className="text-red-500 bg-secondary" hidden>{errMsg}</option>
-                        )}
-
-                        {countries && countries.length > 0 && countries.map((country, idx) => (
-                            <option
-                                key={idx}
-                                value={JSON.stringify(country)}
-                                className="font-poppin font-semibold"
+                    {/* Loader for fetching capital data */}
+                    {isFetchingCapital ?
+                        (<p className="text-secondary font-semibold">Fetching selected country capital...</p>)
+                        :
+                        (
+                            <select
+                                value={locationCookieData?.country || ""}
+                                className="border border-secondary cursor-pointer text-secondary bg-background font-semibold rounded-xl p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-secondary transition-all"
+                                disabled={isLoading || !!errMsg || !countries}
+                                onChange={handleSelect}
                             >
-                                {country.country}
-                            </option>
-                        ))}
-                    </select>
+                                {isLoading && (
+                                    <option className="text-white bg-secondary" hidden>Loading countries...</option>
+                                )}
+
+                                <option hidden>
+                                    Select Country
+                                </option>
+
+                                {errMsg && (
+                                    <option className="text-red-500 bg-secondary" hidden>{errMsg}</option>
+                                )}
+
+                                {countries && countries.length > 0 && countries.map((country, idx) => (
+                                    <option
+                                        key={idx}
+                                        value={JSON.stringify(country)}
+                                        className="font-poppin font-semibold"
+                                    >
+                                        {country.country}
+                                    </option>
+                                ))}
+                            </select>
+
+                        )
+                    }
+
                 </form>
 
                 <h3 className="text-secondary font-bold">Or</h3>

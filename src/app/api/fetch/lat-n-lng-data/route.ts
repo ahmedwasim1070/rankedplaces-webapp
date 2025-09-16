@@ -9,8 +9,8 @@ import { ApiResponse, LatNLngDataResponse } from "@/types";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
-  let lat = parseFloat(searchParams.get("lat") || "0");
-  let lng = parseFloat(searchParams.get("lng") || "0");
+  const lat = parseFloat(searchParams.get("lat") || "0");
+  const lng = parseFloat(searchParams.get("lng") || "0");
 
   try {
     if (!lat || !lng || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
@@ -35,10 +35,6 @@ export async function GET(request: NextRequest) {
       !locationData.components.country ||
       !locationData.components["ISO_3166-1_alpha-2"] ||
       !locationData.components.city ||
-      !locationData.components.town ||
-      !locationData.components.village ||
-      !locationData.components.municipality ||
-      !locationData.components.state ||
       !locationData.geometry.lat ||
       !locationData.geometry.lng
     ) {
@@ -48,12 +44,7 @@ export async function GET(request: NextRequest) {
     const userLocationData: LatNLngDataResponse = {
       country: locationData.components.country,
       countryCode: locationData.components["ISO_3166-1_alpha-2"],
-      city:
-        locationData.components.city ||
-        locationData.components.town ||
-        locationData.components.village ||
-        locationData.components.municipality ||
-        locationData.components.state,
+      city: locationData.components.city,
       lat: parseFloat(locationData.geometry.lat),
       lng: parseFloat(locationData.geometry.lng),
     };

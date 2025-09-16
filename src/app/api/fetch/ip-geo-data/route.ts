@@ -38,12 +38,10 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log(data);
     if (
       !data ||
       !data.country_name ||
       !data.country_code2 ||
-      !data.country_capital ||
       !data.latitude ||
       !data.longitude
     ) {

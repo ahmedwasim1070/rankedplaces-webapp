@@ -14,7 +14,7 @@ interface ProviderProps {
     setLocationCookieData: React.Dispatch<React.SetStateAction<LocationCookieData | null>>
     isLocationProviderLoading: boolean;
     urlParams: UrlParams;
-    setParams: (keys: Array<keyof UrlParams>, values: [string]) => void;
+    setParams: (keys: Array<keyof UrlParams>, values: Array<string>) => void;
 }
 interface Props {
     children: ReactNode;
@@ -53,7 +53,7 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
     const urlParams: UrlParams = useMemo(() => {
         const allParams = Object.fromEntries(searchParams.entries());
         return {
-            tag: allParams.tag ?? "all",
+            tag: allParams.tag ?? "All",
             page: allParams.page ?? "1",
             country: allParams.country ?? locationCookieData?.countryCode ?? null,
             city: allParams.city ?? locationCookieData?.city ?? null,
@@ -70,7 +70,7 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
         document.cookie = `user_location=${encodeURIComponent(JSON.stringify(locationCookieData))}; expires=${expires.toUTCString()}; path=/`;
     }
     // Set Params
-    const setParams = useCallback((keys: Array<keyof UrlParams>, values: [string]) => {
+    const setParams = useCallback((keys: Array<keyof UrlParams>, values: Array<string>) => {
         const newParams = new URLSearchParams(searchParams.toString());
 
         keys.map((key, idx) => {
@@ -92,9 +92,7 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
                     throw new Error(data.message);
                 }
 
-                if (data.success) {
-                    return data.data;
-                }
+                return data.data;
             } catch (err) {
                 // Message
                 const msg =
@@ -116,6 +114,7 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
                     const { latitude, longitude } = position.coords;
 
                     setIsLocationProviderLoading(true);
+
                     try {
                         const res = await fetch(`/api/fetch/lat-n-lng-data/?lat=${latitude}&lng=${longitude}`);
                         const data = (await res.json()) as ApiResponse<LatNLngDataResponse | never>;
@@ -125,7 +124,6 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
                         }
 
                         resolve(data.data);
-
                     } catch (err) {
                         const msg = err instanceof Error ? err.message : "Unexpected error.";
                         console.error("Error in fetchLatnLngLocation API call.", "Message:", msg, "Error:", err);
@@ -157,7 +155,7 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
             const params = new URLSearchParams(searchParams.toString());
             let changed = false;
 
-            // Always ensure basic params exist
+            // Always ensure basic params exsists
             if (!params.has("tag")) {
                 params.set("tag", urlParams.tag);
                 changed = true;
@@ -170,6 +168,7 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
             // Handle country-specific route
             if (pathname === "/top-country-places") {
                 if (!params.has("country")) {
+                    setIsLocationProviderLoading(true);
                     if (!urlParams.country) {
                         if (!locationCookieData || !locationCookieData.countryCode) {
                             const userIpLocation = await fetchIpLocation();
@@ -185,12 +184,15 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
                         changed = true;
                         params.set("country", urlParams.country);
                     }
+
+                    setIsLocationProviderLoading(false);
                 }
             }
 
             // Handle city-specific route
             if (pathname === "/top-city-places") {
                 if (!params.has("country") || !params.has("city") || !params.has("lat") || !params.has("lng")) {
+                    setIsLocationProviderLoading(true);
                     if (
                         !urlParams.country ||
                         !urlParams.city ||
@@ -222,6 +224,8 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
                         params.set("lat", urlParams.lat);
                         params.set("lng", urlParams.lng);
                     }
+
+                    setIsLocationProviderLoading(false);
                 }
             }
 

@@ -20,35 +20,38 @@ model Users {
 }
 
 model Places {
-  id               Int          @id @default(autoincrement())
-  profile_id       String       @unique
-  name             String       @unique
-  pfp              String       @unique
+  id               Int         @id @default(autoincrement())
+  profile_id       String      @unique
+  name             String      @unique
+  pfp              String      @unique
   category         String
   address          String
   city             String
+  lat              Float
+  lng              Float
   country          String
+  country_code     String
   phone            String
   website          String
-  maps_url         String       @unique
+  maps_url         String      @unique
   review_value     Float
   review_amount    Int
-  total_up_votes   Int          @default(0)
-  total_down_votes Int          @default(0)
+  total_up_votes   Int         @default(0)
+  total_down_votes Int         @default(0)
   added_by_id      Int
-  user             Users        @relation(fields: [added_by_id], references: [id])
-  place_tags       place_tags[]
+  user             Users       @relation(fields: [added_by_id], references: [id])
+  place_tags       PlaceTags[]
 }
 
 model Tags {
-  id         Int          @id @default(autoincrement())
-  name       String       @unique
+  id         Int         @id @default(autoincrement())
+  name       String      @unique
   author_id  Int
-  author     Users        @relation(fields: [author_id], references: [id])
-  place_tags place_tags[]
+  author     Users       @relation(fields: [author_id], references: [id])
+  place_tags PlaceTags[]
 }
 
-model place_tags {
+model PlaceTags {
   id       Int    @id @default(autoincrement())
   place_id Int
   tag_id   Int
@@ -70,7 +73,7 @@ model Votes {
   user        Users    @relation(fields: [voted_by_id], references: [id])
 
   place_tag_id Int
-  place_tags   place_tags @relation(fields: [place_tag_id], references: [id])
+  place_tags   PlaceTags @relation(fields: [place_tag_id], references: [id])
 
   @@unique([voted_by_id, place_tag_id])
 }

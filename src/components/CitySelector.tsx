@@ -7,13 +7,8 @@ import { ApiResponse, CitiesResponse } from "@/types";
 // Porviders
 import { useLocationProvider } from "@/providers/LocationProvider";
 
-// Interface
-interface Props {
-    changeDefault: boolean;
-};
-
 // 
-function CitySelector({ changeDefault }: Props) {
+function CitySelector() {
     // Providers
     // Location
     const { locationCookieData, setLocationCookieData, urlParams, setParams } = useLocationProvider();
@@ -44,9 +39,6 @@ function CitySelector({ changeDefault }: Props) {
         const selectedCityData = cities?.find((city) => city.name === selected) || null;
         if (!selectedCityData || !selectedCityData.name || !selectedCityData.lat || !selectedCityData.lng) return;
         setParams(['city'], [selectedCityData.name]);
-        if (changeDefault && locationCookieData) {
-            setLocationCookieData({ ...locationCookieData, city: selectedCityData.name, lat: selectedCityData.lat, lng: selectedCityData.lng });
-        }
     };
 
     // Effects
@@ -93,8 +85,7 @@ function CitySelector({ changeDefault }: Props) {
 
     return (
         <select
-            value={urlParams.city || ""}
-            className={'max-w-44 cursor-pointer bg-background text-primary rounded-xl px-2 font-semibold focus:outline-none focus:ring-2 focus:ring-secondary transition-all'}
+            className={'max-w-44 cursor-pointer bg-background text-primary rounded-xl px-2 font-semibold outline-none focus:ring-2 focus:ring-secondary transition-all'}
             disabled={isLoading || !!errMsg || !cities}
             onChange={handleSelect}
         >
@@ -103,10 +94,13 @@ function CitySelector({ changeDefault }: Props) {
                 <option className="text-white bg-secondary" hidden>Loading cities...</option>
             )}
 
-            {!urlParams.city &&
-                <option hidden>
+            {!urlParams.city ?
+                (<option hidden>
                     Select City
-                </option>
+                </option>) :
+                (<option selected hidden>
+                    {urlParams.city}
+                </option>)
             }
 
             {errMsg && (

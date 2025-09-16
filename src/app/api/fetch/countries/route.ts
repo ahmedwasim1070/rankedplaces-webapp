@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/error/ApiError";
 // Types
 import { ApiResponse, CountryResponse } from "@/types";
 
+//
 export async function GET() {
   try {
     const response = await fetch("https://www.apicountries.com/countries");
@@ -21,7 +22,7 @@ export async function GET() {
       return {
         country: country.name,
         countryCode: country.alpha2Code,
-        capita: country.capital,
+        capital: country.capital,
       };
     });
 
