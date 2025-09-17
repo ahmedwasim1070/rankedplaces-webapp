@@ -2,8 +2,8 @@
 SELECT t.id,
     t.name,
     COUNT(pt.*) AS tag_count
-FROM tags t
-    JOIN place_tags pt ON pt.tag_id = t.id
+FROM "Tags" t
+    JOIN "PlaceTags" pt ON pt.tag_id = t.id
     JOIN "Places" p ON pt.place_id = p.id
 WHERE ST_DWithin(
         geography(p.geom),

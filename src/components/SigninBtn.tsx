@@ -13,7 +13,7 @@ function SigninBtn() {
     const { setIsSigninPopup } = useGlobalProvider();
 
     return (
-        <button disabled={status === 'authenticated'} onClick={() => { { status !== 'authenticated' && setIsSigninPopup(true) } }} type="button" className={`flex flex-row items-center group px-4 py-2 gap-x-2 text-center rounded-lg group ${status !== 'authenticated' && 'border border-secondary hover:bg-transparent transition-colors bg-secondary cursor-pointer'}`}>
+        <button disabled={status === 'authenticated'} onClick={() => { { status !== 'authenticated' && setIsSigninPopup(true) } }} type="button" className={`flex flex-row items-center group px-5 py-2 gap-x-2 text-center rounded-full group ${status !== 'authenticated' && 'border border-secondary hover:bg-transparent transition-colors bg-secondary cursor-pointer'}`}>
             <svg
                 className="w-5 h-5 "
                 xmlns="http://www.w3.org/2000/svg"

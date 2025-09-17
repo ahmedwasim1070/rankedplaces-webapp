@@ -3,6 +3,9 @@
 // Imports
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react';
+// Providers
+import { useLocationProvider } from '@/providers/LocationProvider';
+import AddPlaceBtn from './AddPlaceBtn';
 
 // Skeleton Profile Loader 
 const PlaceSkeletonLoader = () => {
@@ -46,6 +49,9 @@ const PlaceSkeletonLoader = () => {
 
 // 
 function PlaceShowroom() {
+    // Provider
+    // Location
+    const { urlParams } = useLocationProvider();
     // States
     // Loader
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -53,6 +59,7 @@ function PlaceShowroom() {
     // Effects
     return (
         <section className='min-w-full px-4 py-2 grid grid-cols-3 md:grid-cols-3 xxs:grid-cols-1 gap-y-4 gap-x-2'>
+
             {/* Loader */}
             {isLoading && <PlaceSkeletonLoader />}
 

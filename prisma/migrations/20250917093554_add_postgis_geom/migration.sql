@@ -91,26 +91,27 @@ ADD CONSTRAINT "Votes_voted_by_id_fkey" FOREIGN KEY ("voted_by_id") REFERENCES "
 -- AddForeignKey
 ALTER TABLE "public"."Votes"
 ADD CONSTRAINT "Votes_place_tag_id_fkey" FOREIGN KEY ("place_tag_id") REFERENCES "public"."PlaceTags"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
--- prisma/migrations/<timestamp>_add-postgis-geom/migration.sql
--- 1) Ensure PostGIS extension exists
+-- PostGIS Extension and Geometry Setup
 CREATE EXTENSION IF NOT EXISTS postgis;
--- 2) Add the geom column
-ALTER TABLE "Places"
-ADD COLUMN IF NOT EXISTS geom geometry(Point, 4326);
--- 3) Backfill geom from existing lat/lng
-UPDATE "Places"
+-- Add geometry column to Places table
+ALTER TABLE "public"."Places"
+ADD COLUMN geom geometry(Point, 4326);
+-- Create spatial index for efficient queries
+CREATE INDEX places_geom_idx ON "public"."Places" USING GIST (geom);
+-- Backfill existing data
+UPDATE "public"."Places"
 SET geom = ST_SetSRID(ST_MakePoint(lng, lat), 4326)
 WHERE lat IS NOT NULL
     AND lng IS NOT NULL;
--- 4) Add a GIST index for fast spatial queries
-CREATE INDEX IF NOT EXISTS places_geom_idx ON "Places" USING GIST (geom);
--- 5) Optional: Trigger to keep geom in sync on INSERT/UPDATE
-CREATE OR REPLACE FUNCTION places_set_geom() RETURNS trigger AS $$ BEGIN NEW.geom := ST_SetSRID(ST_MakePoint(NEW.lng, NEW.lat), 4326);
+-- Create function to auto-update geom when lat/lng changes
+CREATE OR REPLACE FUNCTION public.places_set_geom() RETURNS TRIGGER AS $$ BEGIN IF NEW.lat IS NOT NULL
+    AND NEW.lng IS NOT NULL THEN NEW.geom := ST_SetSRID(ST_MakePoint(NEW.lng, NEW.lat), 4326);
+END IF;
 RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-DROP TRIGGER IF EXISTS set_geom_before_insert ON "Places";
-CREATE TRIGGER set_geom_before_insert BEFORE
+-- Create trigger to keep geom in sync
+CREATE TRIGGER set_geom_before_insert_update BEFORE
 INSERT
     OR
-UPDATE ON "Places" FOR EACH ROW EXECUTE FUNCTION places_set_geom();
+UPDATE ON "public"."Places" FOR EACH ROW EXECUTE FUNCTION public.places_set_geom();

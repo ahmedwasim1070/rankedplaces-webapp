@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/error/ApiError";
 import tagFormValidator from "@/lib/api/validators/tagForm.validator";
 // Types
 import { ApiResponse, TagFormData } from "@/types";
+import { Tags } from "@/generated/prisma";
 
 //
 export async function POST(request: NextRequest) {
@@ -37,27 +38,27 @@ export async function POST(request: NextRequest) {
       throw new ApiError("No user found.", 404);
     }
 
-    const tagInDb = await prisma.tags.findUnique({
+    const isTagInDb = await prisma.tags.findUnique({
       where: {
         name: tag,
       },
     });
-    if (tagInDb) {
+    if (isTagInDb) {
       throw new ApiError("Tag already exsists.", 409);
     }
 
-    await prisma.tags.create({
+    const tagInDb = await prisma.tags.create({
       data: {
         name: tag,
         author_id: user.id,
       },
     });
 
-    return NextResponse.json<ApiResponse<null>>(
+    return NextResponse.json<ApiResponse<Tags>>(
       {
         success: true,
         message: "Successfully created tag.",
-        data: null,
+        data: tagInDb,
       },
       {
         status: 200,
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     const status = error instanceof ApiError ? error.status : 500;
     // Console
     console.error(
-      "Error in createTag.",
+      "Error in /create/tag.",
       "Message : ",
       message,
       "Error : ",

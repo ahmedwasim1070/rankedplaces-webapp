@@ -164,14 +164,11 @@ function TagCarousel() {
                 {isFetching && <TagSkeletonLoader />}
 
                 {/*  */}
-                {tags && (
-                    <button onClick={() => handleTagChange('All')} className={`rounded-full px-4 py-2  border-2 border-secondary  ${urlParams.tag === 'All' ? 'bg-transparent text-secondary' : 'bg-secondary text-white hover:bg-transparent hover:text-secondary transition-colors cursor-pointer'}`}>
-                        <p className='font-semibold'>
-                            All
-                        </p>
-                    </button>
-                )
-                }
+                <button onClick={() => handleTagChange('All')} className={`rounded-full px-4 py-2  border-2 border-secondary  ${urlParams.tag === 'All' ? 'bg-transparent text-secondary' : 'bg-secondary text-white hover:bg-transparent hover:text-secondary transition-colors cursor-pointer'}`}>
+                    <p className='font-semibold'>
+                        All
+                    </p>
+                </button>
                 {tags && tags.map((tag, idx) => (
                     <button onClick={() => handleTagChange(tag.name)} key={idx} className={`rounded-full px-4 py-2  border-2 border-secondary  ${urlParams.tag === tag.name ? 'bg-transparent text-secondary' : 'bg-secondary text-white hover:bg-transparent hover:text-secondary transition-colors cursor-pointer'}`}>
                         <p className='font-semibold'>

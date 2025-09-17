@@ -1,10 +1,12 @@
-// Form Data
+// Tag Form Data
 export type TagFormData = {
   phrase: string;
   keyword: string;
 };
-// Form Error
+// Tag Form Error
 export type TagFormError = {
   phrase: string | null;
   keyword: string | null;
 };
+// AddPlace Form Data
+// AddPlace Form Error

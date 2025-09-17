@@ -44,7 +44,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body>
+      <body className="overflow-x-hidden">
 
         {/* Location Provider */}
         <LocationProvider initialLocation={locationCookieData}>

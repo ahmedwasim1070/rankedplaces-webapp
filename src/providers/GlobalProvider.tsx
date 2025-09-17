@@ -10,7 +10,8 @@ import { useLocationProvider } from "./LocationProvider";
 // Components
 import Loader from "@/components/Loader";
 import SigninPopup from "@/components/SigninPopup";
-import CreateTagPopup from "@/components/CreateTagPopup";
+import AddPlacePop from "@/components/AddPlacePop";
+import AddTagPopup from "@/components/AddTagPop";
 
 // Interfaces
 interface ProviderProps {
@@ -18,7 +19,8 @@ interface ProviderProps {
     isLoading: boolean;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setIsSigninPopup: React.Dispatch<React.SetStateAction<boolean>>;
-    setIsCreateTagPop: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsAddTagPop: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsAddPlacePop: React.Dispatch<React.SetStateAction<boolean>>;
 }
 interface Props {
     children: ReactNode;
@@ -39,12 +41,14 @@ export const GlobalProvider = ({ children }: Props) => {
     // Popup screen state for signin
     const [isSigninPop, setIsSigninPopup] = useState(false);
     // Popup screen state for tag-creation
-    const [isCreateTagPop, setIsCreateTagPop] = useState(false);
+    const [isAddTagPop, setIsAddTagPop] = useState(false);
+    // Popup screen state for tag-creation
+    const [isAddPlacePop, setIsAddPlacePop] = useState(false);
 
     // Values
     const values = useMemo(() => ({
-        pathname, isLoading, setIsLoading, setIsSigninPopup, setIsCreateTagPop
-    }), [pathname, isLoading,])
+        pathname, isLoading, setIsLoading, setIsSigninPopup, setIsAddTagPop, setIsAddPlacePop
+    }), [pathname, isLoading, setIsAddPlacePop])
 
     return (
         <GlobalContext.Provider value={values}>
@@ -65,8 +69,13 @@ export const GlobalProvider = ({ children }: Props) => {
             }
 
             {/* Create-tag Screen Popup */}
-            {isCreateTagPop &&
-                <CreateTagPopup />
+            {isAddTagPop &&
+                <AddTagPopup />
+            }
+
+            {/* Add-place Screen Popup */}
+            {isAddPlacePop &&
+                <AddPlacePop />
             }
 
             {/* Session Provider */}

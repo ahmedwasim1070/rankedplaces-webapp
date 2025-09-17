@@ -5,10 +5,11 @@ import { Search } from "lucide-react";
 import Image from "next/image";
 // Components
 import SigninBtn from "./SigninBtn";
-import AddtagBtn from "./CreateTagBtn";
+import AddTagBtn from "./AddTagBtn";
 // Providers
 import { useLocationProvider } from "@/providers/LocationProvider";
 import { useGlobalProvider } from "@/providers/GlobalProvider";
+import AddPlaceBtn from "./AddPlaceBtn";
 
 // 
 function Hero() {
@@ -39,7 +40,7 @@ function Hero() {
                 <div className="w-full flex flex-row justify-center items-center gap-x-1 flex-nowrap">
                     <input
                         type="search"
-                        className="w-full sm:w-2/4 md:w-1/2 lg:w-2/5 border-2 border-gray-400 rounded-full px-3 py-2 text-secondary placeholder:text-gray-400 outline-none focus:border-primary"
+                        className="w-full 2xl:w-1/4 sm:w-2/4 md:w-1/2 lg:w-2/5 border-2 border-gray-400 rounded-full px-3 py-2 text-secondary placeholder:text-gray-400 outline-none focus:border-primary"
                         placeholder="Search tag or place."
                     />
                     <button className="bg-primary outline-none p-2 rounded-full border-2 border-primary hover:bg-transparent cursor-pointer transition-colors">
@@ -55,8 +56,15 @@ function Hero() {
             {/*  */}
             <SigninBtn />
 
-            {/*  */}
-            <AddtagBtn />
+            <div className="flex flex-row items-center">
+                {/*  */}
+                <AddTagBtn />
+
+                <span className="text-secondary text-2xl">|</span>
+
+                {/*  */}
+                <AddPlaceBtn />
+            </div>
         </main>
     )
 }
