@@ -56,8 +56,8 @@ function AddTagPopup() {
                 },
                 body: JSON.stringify(formData),
             });
-
             const data = (await res.json()) as ApiResponse<Tags | never>;
+
             if (!data.success) {
                 throw new Error(data.message);
             }

@@ -26,10 +26,6 @@ export async function GET(request: NextRequest) {
       throw new ApiError("Ip is required.", 400);
     }
 
-    if (process.env.NODE_ENV !== "production") {
-      userIp = "101.50.68.144";
-    }
-
     const response = await fetch(
       `https://api.ipgeolocation.io/ipgeo?apiKey=${process.env.IPGEOLOCATION_KEY}&ip=${userIp}`
     );

@@ -120,7 +120,6 @@ function TagCarousel() {
 
             const url = getFetchTagUrl();
             if (!url) return;
-            console.log(url);
 
             try {
                 const res = await fetch(`${url}`);

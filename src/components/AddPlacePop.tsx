@@ -1,36 +1,80 @@
 // Imports
 import { Search, X } from "lucide-react"
 import React, { useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
+// Types
+import { ApiResponse, PlaceSuggestionResponse } from "@/types";
 // Provider
 import { useGlobalProvider } from "@/providers/GlobalProvider"
 
 // 
 const AddPlace = () => {
     // Refs
-    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+    // Timer
+    const debouncerTimerRef = useRef<NodeJS.Timeout | null>(null);
+    // Last typed time
+    const lastTypedAtRef = useRef<number>(0);
     // States
+    // loader for suggestion 
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     // user searched place
     const [searchedPlace, setSearchedPlace] = useState<string>("");
-    // debouncer function for fetchPlaceSuggestion
-    const debouncedFetchPlaceSuggestion = (value: string) => {
-        if (debounceTimerRef.current) {
-            clearTimeout(debounceTimerRef.current);
-        }
-
+    // fetchPlaceSuggestion
+    const fetchPlaceSuggestion = async (value: string) => {
         if (value.length > 3) {
-            debounceTimerRef.current = setTimeout(() => {
-            }, 1000);
-        } else {
+
+            setIsLoading(true);
+
+            try {
+                const res = await fetch(`/api/fetch/place-suggestion/?searched-place=${searchedPlace}`);
+                const data = (await res.json()) as ApiResponse<PlaceSuggestionResponse | never>;
+
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+
+                console.log(data.data);
+            } catch (err) {
+                // Message
+                const msg =
+                    err instanceof Error ? err.message : "Unexpected error.";
+                // 
+                toast.error(msg);
+                // 
+                console.error("Error in AddPlacePop in fetchPlaceSuggestion.", "Message : ", msg, "Error : ", err);
+            } finally {
+                setIsLoading(false);
+            }
 
         }
-
-    }
+    };
     // handle keystrokes change
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
+
         setSearchedPlace(value);
-        debouncedFetchPlaceSuggestion(value);
+
+        lastTypedAtRef.current = Date.now();
+
+        if (debouncerTimerRef.current) {
+            clearTimeout(debouncerTimerRef.current);
+        }
+
+        debouncerTimerRef.current = setTimeout(() => {
+            if (Date.now() - lastTypedAtRef.current >= 500 && value.length > 3) {
+                fetchPlaceSuggestion(value);
+            } else {
+                setIsLoading(false);
+            }
+        }, 500);
     };
+
+    // Effect
+    useEffect(() => {
+        if (debouncerTimerRef.current) {
+            clearTimeout(debouncerTimerRef.current);
+        }
+    }, [])
 
     return (
         <>
@@ -38,7 +82,7 @@ const AddPlace = () => {
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-primary bg-background" />
 
                 {/*  */}
-                <input onChange={handleChange} type="search" className="rounded-xl border-2 border-gray-400 w-full p-2 outline-none my-2 focus:border-primary transition-colors text-secondary" placeholder="Search place name" />
+                <input onChange={handleChange} value={searchedPlace} name="searchedPlace" type="search" className="rounded-xl border-2 border-gray-400 w-full p-2 outline-none my-2 focus:border-primary transition-colors text-secondary" placeholder="Search place name" />
             </div>
 
             <p className="text-sm text-secondary underline">via google maps</p>
@@ -64,14 +108,7 @@ function AddPlacePop() {
     // Providers
     // Global
     const { setIsAddPlacePop } = useGlobalProvider();
-    // Refs
-    const debouncerTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    useEffect(() => {
-        if (debouncerTimerRef.current) {
-            clearTimeout(debouncerTimerRef.current);
-        }
-    }, [])
     return (
         <section className="fixed min-w-screen min-h-screen bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center px-2">
             <div className="w-1/3 min-w-xxs bg-background rounded-lg shadow-sm px-2 py-4 border border-secondary/20 relative text-center">
