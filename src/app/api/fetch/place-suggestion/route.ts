@@ -17,6 +17,10 @@ export async function GET(request: NextRequest) {
 
   const searchedPlace = searchParams.get(`searched-place`);
   try {
+    if (!process.env.GOOGLE_PLACES_API_KEY) {
+      throw new ApiError("Server Configuration Error.", 500);
+    }
+
     const uniqueId = token?.unique_id;
     if (!uniqueId) {
       throw new ApiError("No user found.", 404);
@@ -24,10 +28,6 @@ export async function GET(request: NextRequest) {
 
     if (!searchedPlace || searchedPlace.length < 3) {
       throw new ApiError("searched-place value is Invalid or required.", 400);
-    }
-
-    if (!process.env.GOOGLE_PLACES_API_KEY) {
-      throw new ApiError("Server Configuration Error.", 500);
     }
 
     const response = await fetch(

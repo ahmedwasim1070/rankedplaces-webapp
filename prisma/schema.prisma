@@ -20,7 +20,7 @@ model Users {
 
 model Places {
   id               Int                                   @id @default(autoincrement())
-  profile_id       String                                @unique
+  place_id         String                                @unique
   name             String                                @unique
   pfp              String                                @unique
   category         String

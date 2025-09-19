@@ -75,28 +75,27 @@ export type LatNLngDataResponse = {
   lng: number;
 };
 
+// Response of fetch/capital
 export type CapitalReponse = {
   city: string;
   lat: number;
   lng: number;
 };
 
+// Response of fetch/place-suggestion
 interface MatchedSubstring {
   length: number;
   offset: number;
 }
-
 interface Term {
   offset: number;
   value: string;
 }
-
 interface StructuredFormatting {
   main_text: string;
   main_text_matched_substrings: MatchedSubstring[];
   secondary_text: string;
 }
-
 export type PlaceSuggestionResponse = {
   description: string;
   matched_substrings: MatchedSubstring[];

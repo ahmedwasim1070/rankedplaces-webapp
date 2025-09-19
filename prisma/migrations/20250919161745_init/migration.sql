@@ -11,7 +11,7 @@ CREATE TABLE "public"."Users" (
 -- CreateTable
 CREATE TABLE "public"."Places" (
     "id" SERIAL NOT NULL,
-    "profile_id" TEXT NOT NULL,
+    "place_id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "pfp" TEXT NOT NULL,
     "category" TEXT NOT NULL,
@@ -60,7 +60,7 @@ CREATE UNIQUE INDEX "Users_unique_id_key" ON "public"."Users"("unique_id");
 -- CreateIndex
 CREATE UNIQUE INDEX "Users_email_key" ON "public"."Users"("email");
 -- CreateIndex
-CREATE UNIQUE INDEX "Places_profile_id_key" ON "public"."Places"("profile_id");
+CREATE UNIQUE INDEX "Places_place_id_key" ON "public"."Places"("place_id");
 -- CreateIndex
 CREATE UNIQUE INDEX "Places_name_key" ON "public"."Places"("name");
 -- CreateIndex
