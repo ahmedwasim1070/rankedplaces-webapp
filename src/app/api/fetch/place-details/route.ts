@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
 // Types
-import { ApiResponse } from "@/types";
+import { ApiResponse, PlaceDetailsResponse } from "@/types";
 
 //
 export async function GET(request: NextRequest) {
@@ -28,10 +28,15 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log(data);
+    if (!data.result) {
+      throw new ApiError("Error from external api.Incomplelete Response.", 404);
+    }
 
-    return NextResponse.json<ApiResponse<never>>({
-      success: false,
+    const placeDetails: PlaceDetailsResponse = data.result;
+
+    return NextResponse.json<ApiResponse<PlaceDetailsResponse>>({
+      success: true,
+      data: placeDetails,
       message: "Successfully fetchedPlaceDetails.",
     });
   } catch (error) {
