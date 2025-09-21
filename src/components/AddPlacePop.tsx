@@ -263,12 +263,14 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
                 </div>
 
                 {/*  */}
-                <div className="flex flex-row items-center gap-x-1">
-                    <MapPin className="w-4 h-4 text-gray-500" />
-                    <p className="text-primary font-semibold">{city}</p>
-                    <p>,</p>
-                    <p className="text-secondary font-semibold">{country}</p>
-                </div>
+                {city || country && (
+                    <div className="flex flex-row items-center gap-x-1">
+                        <MapPin className="w-4 h-4 text-gray-500" />
+                        <p className="text-primary font-semibold">{city}</p>
+                        <p>,</p>
+                        <p className="text-secondary font-semibold">{country}</p>
+                    </div>
+                )}
 
                 {/*  */}
                 <div className="mt-2">
