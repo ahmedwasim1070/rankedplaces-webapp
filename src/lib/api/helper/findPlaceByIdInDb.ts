@@ -1,19 +1,9 @@
 // Imports
-import { Prisma } from "@/generated/prisma";
 import { prisma } from "@/lib/prisma/prisma";
+import { PlacesAndTags } from "@/types";
 
 //
 const COORD_TOLERANCE = 0.0001;
-
-type PlacesAndTags = Prisma.PlacesGetPayload<{
-  include: {
-    place_tags: {
-      include: {
-        tag: true;
-      };
-    };
-  };
-}>;
 
 // Types
 type FindPlaceInDb = (

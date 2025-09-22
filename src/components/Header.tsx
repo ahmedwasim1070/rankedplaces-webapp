@@ -13,22 +13,9 @@ import CitySelector from "./CitySelector";
 // 
 function Header() {
     // Context
-    const { pathname } = useGlobalProvider();
+    const { mainNav, pathname } = useGlobalProvider();
     // States
     const [isExpanded, setIsExpaneded] = useState<boolean>(false);
-    // Nav Contents
-    const navigationItems = [
-        {
-            href: '/top-country-places',
-            label: 'Top Country Places',
-            isActive: pathname === '/top-country-places',
-        },
-        {
-            href: '/top-city-places',
-            label: 'Top City Places',
-            isActive: pathname === '/top-city-places',
-        }
-    ]
 
 
     return (
@@ -49,14 +36,14 @@ function Header() {
             <nav>
                 <ul className="md:min-w-auto min-w-screen flex md:flex-row flex-col items-center gap-x-5 xxs:gap-y-4 xxs:py-8">
                     {/* Nav Items */}
-                    {navigationItems.map((nav, idx) => (
+                    {mainNav.map((nav, idx) => (
                         <li key={idx} className="list-none">
                             <Link className={`font-semibold hover:text-secondary underline-animation ${nav.isActive ? 'text-secondary' : 'text-primary'}`} href={nav.href}>{nav.label}</Link>
                         </li>
                     ))}
                     {pathname === '/top-city-places' &&
                         <li className="list-none">
-                            <CitySelector changeDefault={false} />
+                            <CitySelector />
                         </li>
                     }
                 </ul>

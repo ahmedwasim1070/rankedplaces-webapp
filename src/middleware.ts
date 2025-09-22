@@ -6,7 +6,11 @@ import { ApiResponse } from "./types";
 
 // Routes
 // auth required routes
-const protectedRoutes = ["/api/create/tag", "/api/fetch/place-suggestion"];
+const protectedRoutes = [
+  "/api/create/tag",
+  "/api/fetch/place-suggestion",
+  "/api/fetch/tags-suggestion",
+];
 
 //
 export async function middleware(request: NextRequest) {

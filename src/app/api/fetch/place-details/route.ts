@@ -3,7 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
 // Types
-import { ApiResponse, PlaceDetailsResponse } from "@/types";
+import {
+  ApiResponse,
+  PlaceDetailsByGoogle,
+  PlaceDetailsResponse,
+} from "@/types";
+import { findPlaceInDb } from "@/lib/api/helper/findPlaceByIdInDb";
 
 //
 export async function GET(request: NextRequest) {
@@ -32,7 +37,28 @@ export async function GET(request: NextRequest) {
       throw new ApiError("Error from external api.Incomplelete Response.", 404);
     }
 
-    const placeDetails: PlaceDetailsResponse = data.result;
+    const placeByGoogle: PlaceDetailsByGoogle = data.result;
+    if (
+      !placeByGoogle ||
+      !placeByGoogle.place_id ||
+      !placeByGoogle.geometry.location.lat ||
+      !placeByGoogle.geometry.location.lng ||
+      !placeByGoogle.formatted_address
+    ) {
+      throw new ApiError("Error from external api.Incomplelete Response.", 404);
+    }
+
+    const placeByDb = await findPlaceInDb(
+      placeByGoogle.place_id,
+      placeByGoogle.geometry.location.lat,
+      placeByGoogle.geometry.location.lng,
+      placeByGoogle.formatted_address
+    );
+
+    const placeDetails: PlaceDetailsResponse = {
+      googleData: data.result,
+      dbData: placeByDb,
+    };
 
     return NextResponse.json<ApiResponse<PlaceDetailsResponse>>({
       success: true,

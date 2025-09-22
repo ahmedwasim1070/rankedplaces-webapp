@@ -21,6 +21,7 @@ interface ProviderProps {
     setIsSigninPopup: React.Dispatch<React.SetStateAction<boolean>>;
     setIsAddTagPop: React.Dispatch<React.SetStateAction<boolean>>;
     setIsAddPlacePop: React.Dispatch<React.SetStateAction<boolean>>;
+    mainNav: any[];
 }
 interface Props {
     children: ReactNode;
@@ -45,9 +46,24 @@ export const GlobalProvider = ({ children }: Props) => {
     // Popup screen state for tag-creation
     const [isAddPlacePop, setIsAddPlacePop] = useState(false);
 
+    // Constants
+    // Nav Contents
+    const mainNav = [
+        {
+            href: '/top-country-places',
+            label: 'Top Country Places',
+            isActive: pathname === '/top-country-places',
+        },
+        {
+            href: '/top-city-places',
+            label: 'Top City Places',
+            isActive: pathname === '/top-city-places',
+        }
+    ]
+
     // Values
     const values = useMemo(() => ({
-        pathname, isLoading, setIsLoading, setIsSigninPopup, setIsAddTagPop, setIsAddPlacePop
+        pathname, isLoading, setIsLoading, mainNav, setIsSigninPopup, setIsAddTagPop, setIsAddPlacePop,
     }), [pathname, isLoading, setIsAddPlacePop])
 
     return (

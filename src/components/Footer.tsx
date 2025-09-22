@@ -9,7 +9,7 @@ import { useGlobalProvider } from "@/providers/GlobalProvider";
 // 
 function Footer() {
     // Provider
-    const { pathname } = useGlobalProvider();
+    const { mainNav, pathname } = useGlobalProvider();
     // Nav Item
     const primaryNavigationItems = [
         {
@@ -23,18 +23,6 @@ function Footer() {
         {
             href: '/privacy-policy',
             label: 'Privacy Policy',
-        }
-    ]
-    const secondaryNavigationItems = [
-        {
-            href: '/top-country-places',
-            label: 'Top Country Places',
-            isActive: pathname === '/top-country-places',
-        },
-        {
-            href: '/top-city-places',
-            label: 'Top City Places',
-            isActive: pathname === '/top-city-places',
         }
     ]
 
@@ -74,7 +62,7 @@ function Footer() {
                     <section>
                         <nav>
                             <ul className="space-y-2 md:text-right xxs:text-left">
-                                {secondaryNavigationItems.map((nav, idx) => (
+                                {mainNav.map((nav, idx) => (
                                     <li key={idx} className={`2xl:text-md lg:text-sm  font-semibold transition-colors decoration-secondary hover:text-secondary hover:decoration-primary ${nav.isActive ? 'text-secondary' : 'text-primary'}`}>
                                         <Link href={nav.href} className="underline">{nav.label}</Link>
                                     </li>

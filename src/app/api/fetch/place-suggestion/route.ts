@@ -16,6 +16,16 @@ export async function GET(request: NextRequest) {
   });
 
   const searchedPlace = searchParams.get(`searched-place`);
+  const countryCode = searchParams.get(`country-code`);
+  const lat = parseFloat(searchParams.get("lat") || "");
+  const lng = parseFloat(searchParams.get("lng") || "");
+
+  if (
+    (!isNaN(lat) && (lat < -90 || lat > 90)) ||
+    (!isNaN(lng) && (lat < -180 || lat > 180))
+  ) {
+    throw new ApiError("Latitude/Longitude is Invalid.", 400);
+  }
   try {
     if (!process.env.GOOGLE_PLACES_API_KEY) {
       throw new ApiError("Server Configuration Error.", 500);
@@ -30,11 +40,17 @@ export async function GET(request: NextRequest) {
       throw new ApiError("searched-place value is Invalid or required.", 400);
     }
 
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
-        searchedPlace
-      )}&key=${process.env.GOOGLE_PLACES_API_KEY}`
-    );
+    let url = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(
+      searchedPlace
+    )}`;
+    if (countryCode && (isNaN(lat) || isNaN(lng))) {
+      url += `&components=country:${countryCode}`;
+    } else if (countryCode && !isNaN(lat) && !isNaN(lng)) {
+      url += `&components=country:${countryCode}&location=${lat},${lng}&radius=50000`;
+    }
+    url += `&key=${process.env.GOOGLE_PLACES_API_KEY}`;
+
+    const response = await fetch(url);
     if (!response.ok) {
       throw new ApiError("Error from external api.", response.status);
     }
@@ -42,7 +58,7 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
 
     const suggestedPlace: PlaceSuggestionResponse[] = data.predictions;
-    if (!suggestedPlace) {
+    if (!Array.isArray(suggestedPlace)) {
       throw new ApiError("Error from external api.Incomplelete Response.", 404);
     }
 

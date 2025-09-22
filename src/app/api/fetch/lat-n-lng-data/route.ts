@@ -9,11 +9,18 @@ import { ApiResponse, LatNLngDataResponse } from "@/types";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
-  const lat = parseFloat(searchParams.get("lat") || "0");
-  const lng = parseFloat(searchParams.get("lng") || "0");
+  const lat = parseFloat(searchParams.get("lat") || "");
+  const lng = parseFloat(searchParams.get("lng") || "");
 
   try {
-    if (!lat || !lng || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    if (
+      isNaN(lat) ||
+      lat < -90 ||
+      lat < 90 ||
+      isNaN(lng) ||
+      lng < -180 ||
+      lng < 180
+    ) {
       throw new ApiError("Latitude and Longitude is Invalid or Missing.", 400);
     }
 

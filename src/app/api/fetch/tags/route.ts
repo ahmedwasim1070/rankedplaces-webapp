@@ -93,15 +93,22 @@ export async function GET(request: NextRequest) {
         throw new ApiError("Country code is required with city fetchBy.", 400);
       }
 
-      const lat = parseFloat(searchParams.get("lat") || "0");
-      const lng = parseFloat(searchParams.get("lng") || "0");
-      const radiusMeters = 50000;
-      if (!lat || !lng || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      const lat = parseFloat(searchParams.get("lat") || "");
+      const lng = parseFloat(searchParams.get("lng") || "");
+      if (
+        isNaN(lat) ||
+        lat < -90 ||
+        lat > 90 ||
+        isNaN(lng) ||
+        lng < -180 ||
+        lng < 180
+      ) {
         throw new ApiError(
-          "Latitude and Longitude is Invalid or Missing which is required city fetchBy.",
+          "Latitude/Longitude is Invalid or Missing which is required in city fetchBy.",
           400
         );
       }
+      const radiusMeters = 50000;
 
       // Read sql file
       const findTagsQuery = fs.readFileSync(
@@ -115,8 +122,6 @@ export async function GET(request: NextRequest) {
         lat,
         radiusMeters
       );
-
-      console.log(tags);
 
       return NextResponse.json<ApiResponse<cityFetchTagsResponse[]>>({
         success: true,
