@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const uniqueId = token?.unique_id;
     if (!uniqueId) {
-      throw new ApiError("No user found.", 404);
+      throw new ApiError("No user found.", 401);
     }
 
     if (!searchedPlace || searchedPlace.length < 3) {

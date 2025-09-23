@@ -7,8 +7,11 @@ import { ApiResponse } from "./types";
 // Routes
 // auth required routes
 const protectedRoutes = [
-  "/api/create/tag",
+  "/api/add/tag",
+  "/api/add/place",
   "/api/fetch/place-suggestion",
+  "/api/fetch/place-details",
+  "/api/fetch/place-details",
   "/api/fetch/tags-suggestion",
 ];
 

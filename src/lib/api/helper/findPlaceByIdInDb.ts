@@ -1,12 +1,13 @@
 // Imports
-import { prisma } from "@/lib/prisma/prisma";
 import { PlacesAndTags } from "@/types";
+import { Prisma } from "@prisma/client";
 
 //
 const COORD_TOLERANCE = 0.0001;
 
 // Types
 type FindPlaceInDb = (
+  tx: Prisma.TransactionClient,
   placeId: string,
   lat: number,
   lng: number,
@@ -15,12 +16,13 @@ type FindPlaceInDb = (
 
 //
 export const findPlaceInDb: FindPlaceInDb = async (
+  tx,
   placeId,
   lat,
   lng,
   address
 ) => {
-  let place = await prisma.places.findUnique({
+  let place = await tx.places.findUnique({
     where: { place_id: placeId },
     include: {
       place_tags: {
@@ -33,7 +35,7 @@ export const findPlaceInDb: FindPlaceInDb = async (
 
   if (place) return place;
 
-  place = await prisma.places.findFirst({
+  place = await tx.places.findFirst({
     where: {
       AND: [
         { address: { equals: address, mode: "insensitive" } },

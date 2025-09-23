@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { getAddressComponent } from "@/utils";
 // Types
 import { Tags } from "@/generated/prisma";
-import { ApiResponse, PlaceDetailsResponse, PlaceSuggestionResponse } from "@/types";
+import { AddPlaceForm, ApiResponse, PlaceDetailsResponse, PlaceSuggestionResponse } from "@/types";
 // Components
 import Loader from "./Loader";
 // Provider
@@ -22,17 +22,16 @@ interface AddPlaceConfirmationProps {
     selectedPlaceDetails: PlaceDetailsResponse;
 }
 
-// Timer
-const debouncerTimerRef = useRef<NodeJS.Timeout | null>(null);
-// Last typed time
-const lastTypedAtRef = useRef<number>(0);
-
 // 
 const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSelectorProps) => {
     // Providers
     // Location
     const { urlParams } = useLocationProvider()
     // Refs
+    // Timer
+    const debouncerTimerRef = useRef<NodeJS.Timeout | null>(null);
+    // Last typed time
+    const lastTypedAtRef = useRef<number>(0);
     // States
     // loader for suggestion 
     const [isFetchingSuggestion, setIsFetchingSuggestion] = useState<boolean>(false);
@@ -86,12 +85,12 @@ const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSel
         if (value.length > 3) {
             setIsFetchingSuggestion(true);
             debouncerTimerRef.current = setTimeout(() => {
-                if (Date.now() - lastTypedAtRef.current >= 500) {
+                if (Date.now() - lastTypedAtRef.current >= 1000) {
                     fetchPlaceSuggestion(value);
                 } else {
                     setIsFetchingSuggestion(false);
                 }
-            }, 500);
+            }, 1000);
         } else {
             setSuggestedPlaces(null);
             setIsFetchingSuggestion(false);
@@ -111,7 +110,7 @@ const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSel
 
         setIsLoading(true);
 
-        let url: string = `/api/fetch/tags-details/place-id=${selectedPlace.place_id}`;
+        let url: string = `/api/fetch/place-details/?place-id=${selectedPlace.place_id}`;
 
         if (urlParams.country && !urlParams.city) {
             url += `country-code=${urlParams.country}`;
@@ -170,7 +169,7 @@ const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSel
 
                 {/*  */}
                 {(isFetchingSuggestion || suggestedPlaces) &&
-                    (<div className="w-full max-h-50 bg-background absolute top-14 rounded-lg overflow-y-scroll flex flex-col gap-y-2 p-2">
+                    (<div className="w-full max-h-50 bg-background absolute z-20 top-14 rounded-lg overflow-y-scroll flex flex-col gap-y-2 p-2">
                         {isFetchingSuggestion && (
                             <div className="w-full py-4 ">
                                 <Loader dotSize="3" />
@@ -241,27 +240,38 @@ const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSel
 
 // 
 const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProps) => {
+    // Provider
+    // Loaction
+    const { urlParams } = useLocationProvider();
+    // Refs
+    // Timer
+    const debouncerTimerRef = useRef<NodeJS.Timeout | null>(null);
+    // Last typed time
+    const lastTypedAtRef = useRef<number>(0);
     // States
     // City
     const [city, setCity] = useState<string | null>(null);
     // Country
     const [country, setCountry] = useState<string | null>(null);
-    // CountryCode
-    const [countryCode, setCountryCode] = useState<string | null>(null);
     // is loading
     const [isFetchingSuggestion, setIsFetchingSuggestion] = useState<boolean>(false);
-    // Searched Tag
+    // searched Tag
     const [searchedTag, setSearchedTag] = useState<string>("");
-    // Suggested tags
+    // suggested tags
     const [suggestedTags, setSuggestedTags] = useState<Tags[] | null>(null);
     // selected tag's
-    const [selectedTags, setSelectedTags] = useState<Tags[]>([]);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    // loader for adding Place
+    const [isAddingPlace, setIsAddingPlace] = useState<boolean>(false);
 
     // fetch tags suggestion
     const fetchTagSuggestion = async (value: string) => {
-        if (value.length < 2) {
+        if (value.length > 2) {
+
+            setIsFetchingSuggestion(true);
+
             try {
-                const res = await fetch(`/api/fetch/tags-suggestion/?$searched-tag=${value}`);
+                const res = await fetch(`/api/fetch/tags-suggestion/?searched-tag=${value}`);
                 const data = (await res.json()) as ApiResponse<Tags[] | never>;
 
                 if (!data.success) {
@@ -285,8 +295,8 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
     // handle searched place input
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
-        setSearchedTag(value);
 
+        setSearchedTag(value);
 
         lastTypedAtRef.current = Date.now();
 
@@ -295,8 +305,9 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
         }
 
         if (value.length > 2) {
+            setIsFetchingSuggestion(true);
             debouncerTimerRef.current = setTimeout(() => {
-                if (Date.now() - lastTypedAtRef.current >= 500) {
+                if (Date.now() - lastTypedAtRef.current >= 1000) {
                     fetchTagSuggestion(value);
                 } else {
                     setIsFetchingSuggestion(false);
@@ -308,19 +319,77 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
         }
     }
     // handle tag select
-    const handleTagSelect = (tag: Tags) => {
-        setSelectedTags(prev => [...prev, tag]);
+    const handleTagSelect = (tagName: string) => {
+        setSelectedTags((prev) => {
+            const isAlreadyExists: boolean = prev.some(tag => tag === tagName) || (selectedPlaceDetails.dbData ? selectedPlaceDetails.dbData.place_tags.some(placeTag => placeTag.tag.name === tagName) : false);
+            if (isAlreadyExists) {
+                toast.error("Tag already exsists");
+                return [...prev];
+            }
+            return [...prev, tagName];
+        })
+        setSuggestedTags(null);
+        setSearchedTag("");
     }
-    // handle tag removal by id
-    const handleTagRemove = (tagId: number) => {
-        setSelectedTags(prev => prev.filter(tag => tag.id !== tagId));
+    // handle tag removal by name
+    const handleTagRemove = (tagName: string) => {
+        setSelectedTags(prev => prev.filter(tag => tag !== tagName));
+    }
+    // Add Place
+    const handlePlaceAdd = async () => {
+        if (selectedTags.length === 0) {
+            toast.error("Atleast add one tag.");
+            return;
+        };
+
+        if (selectedTags.length > 6) {
+            toast.error("Only 6 can be added with one time.");
+            return;
+        }
+
+        setIsAddingPlace(true);
+        try {
+            const formData: AddPlaceForm = {
+                placeByGoogle: selectedPlaceDetails.googleData,
+                userAddedTags: selectedTags,
+            };
+
+            const response = await fetch(`/api/add/place`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(formData),
+            });
+        } catch (err) {
+            // Message
+            const msg =
+                err instanceof Error ? err.message : "Unexpected error.";
+            // 
+            toast.error(msg);
+            // 
+            console.error("Error in AddPlacePop in handlePlaceAdd.", "Message : ", msg, "Error : ", err);
+        } finally {
+            setIsAddingPlace(false);
+        }
     }
 
     // Effects
     useEffect(() => {
         setCity(getAddressComponent(selectedPlaceDetails.googleData.address_components, 'locality')?.long_name || null);
         setCountry(getAddressComponent(selectedPlaceDetails.googleData.address_components, 'country')?.long_name || null);
-        setCountryCode(getAddressComponent(selectedPlaceDetails.googleData.address_components, 'country')?.short_name || null);
+
+        // Automatically adds the tag if urlParams selected is not in with the place
+        if (urlParams.tag !== 'All') {
+            if (selectedPlaceDetails.dbData?.place_tags) {
+                const isTagAlreadyInPlace = selectedPlaceDetails.dbData.place_tags.find((placeTag) => placeTag.tag.name === urlParams.tag);
+                if (!isTagAlreadyInPlace) {
+                    setSelectedTags(prev => [...prev, urlParams.tag])
+                }
+            } else {
+                setSelectedTags(prev => [...prev, urlParams.tag])
+            }
+        }
     }, [selectedPlaceDetails])
 
     return (
@@ -395,16 +464,18 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
 
                         {/*  */}
                         {(isFetchingSuggestion || suggestedTags) &&
-                            (<div className="w-full max-h-50 bg-background absolute top-14 rounded-lg overflow-y-scroll flex flex-col gap-y-2 p-2">
+                            (<div className="w-full max-h-50 bg-background absolute z-20 top-16 rounded-lg overflow-y-scroll flex flex-col gap-y-2 p-2 border-2 border-gray-500">
                                 {isFetchingSuggestion && (
                                     <div className="w-full py-4 ">
                                         <Loader dotSize="3" />
                                     </div>
                                 )}
 
+                                {suggestedTags?.length === 0 && (<p className="m-2 text-gray-500 ">No tags found with this string.</p>)}
+
                                 {/*  */}
                                 {suggestedTags?.map((tag, idx) => (
-                                    <button onClick={() => handleTagSelect(tag)} key={idx} className="space-y-2 text-gray-400 p-2 cursor-pointer text-left border rounded-lg hover:bg-gray-200 transition-colors">
+                                    <button onClick={() => handleTagSelect(tag.name)} key={idx} className="space-y-2 text-gray-400 p-2 cursor-pointer text-left border rounded-lg hover:bg-gray-200 transition-colors">
                                         <div className="flex flex-col items-start px-2">
                                             <p className="font-medium text-secondary text-sm sm:text-base group-hover:text-primary transition-colors text-left">
                                                 {tag.name}
@@ -421,23 +492,36 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
                         <p className="text-sm text-secondary">Added Tag's : </p>
 
                         {/* Tags */}
-                        <div className="flex flex-row items-center flex-wrap gap-1 my-2">
-                            {(selectedTags.length !== 0) &&
+                        <div className="flex flex-row items-center flex-wrap gap-1 my-2 ">
+                            {(selectedTags.length !== 0) ?
                                 selectedTags.map((tag, idx) => (
-                                    <div key={idx} className="rounded-full bg-secondary px-2.5 py-0.5">
-                                        <p className="text-[13px] text-primary">{tag.name}</p>
+                                    <div key={idx} className="flex items-center rounded-full bg-secondary px-3 py-1 gap-x-2">
+                                        <p className="text-[13px] text-primary">{tag}</p>
 
-                                        <button onClick={() => handleTagRemove(tag.id)} className="rounded-full bg-primary p-1 hover:bg-primary/80">
+                                        <button onClick={() => handleTagRemove(tag)} className="rounded-full p-0.5 bg-primary">
                                             <X className="w-3 h-3 text-secondary " />
                                         </button>
                                     </div>
-                                ))
+                                )
+                                ) : (
+                                    <p className="text-sm text-red-500 font-semibold">
+                                        Atleast add one tag.
+                                    </p>
+                                )
                             }
                         </div>
 
                     </div>
+
                 </div>
+
             </div>
+
+            {/*  */}
+            <button disabled={isAddingPlace || selectedTags.length === 0} className="w-full bg-primary text-white mt-2 rounded-lg py-2 font-semibold border-2 border-primary enabled:hover:bg-transparent enabled:hover:text-primary transition-colors enabled:cursor-pointer disabled:bg-primary/60">
+                {isAddingPlace && (<Loader dotSize="3" className="my-2" />)}
+                <p>Countinue</p>
+            </button>
         </div >
     );
 };

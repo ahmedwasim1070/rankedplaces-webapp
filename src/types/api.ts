@@ -141,6 +141,7 @@ export interface PlaceDetailsByGoogle {
   icon_background_color: string;
   icon_mask_base_uri: string;
   international_phone_number?: string;
+  website?: string;
   name: string;
   opening_hours?: OpeningHours;
   photos?: Photo[];

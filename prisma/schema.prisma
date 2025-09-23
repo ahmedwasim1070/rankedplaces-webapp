@@ -22,7 +22,7 @@ model Places {
   id               Int                                   @id @default(autoincrement())
   place_id         String                                @unique
   name             String                                @unique
-  pfp              String                                @unique
+  pfp              String?                               @unique
   category         String
   address          String
   city             String
@@ -31,24 +31,24 @@ model Places {
   geom             Unsupported("geometry(Point, 4326)")?
   country          String
   country_code     String
-  phone            String
-  website          String
+  phone            String?
+  website          String?
   maps_url         String                                @unique
-  review_value     Float
-  review_amount    Int
+  review_value     Float                                 @default(0.0)
+  review_amount    Int                                   @default(0)
   total_up_votes   Int                                   @default(0)
   total_down_votes Int                                   @default(0)
   added_by_id      Int
   user             Users                                 @relation(fields: [added_by_id], references: [id])
-  place_tags       PlaceTags[]
+  place_tag        PlaceTags[]
 }
 
 model Tags {
-  id         Int         @id @default(autoincrement())
-  name       String      @unique
-  author_id  Int
-  author     Users       @relation(fields: [author_id], references: [id])
-  place_tags PlaceTags[]
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  author_id Int
+  author    Users       @relation(fields: [author_id], references: [id])
+  place_tag PlaceTags[]
 }
 
 model PlaceTags {
@@ -61,7 +61,7 @@ model PlaceTags {
   up_votes   Int @default(0)
   down_votes Int @default(0)
 
-  votes Votes[]
+  vote Votes[]
 
   @@unique([place_id, tag_id])
 }
@@ -73,7 +73,7 @@ model Votes {
   user        Users    @relation(fields: [voted_by_id], references: [id])
 
   place_tag_id Int
-  place_tags   PlaceTags @relation(fields: [place_tag_id], references: [id])
+  place_tag    PlaceTags @relation(fields: [place_tag_id], references: [id])
 
   @@unique([voted_by_id, place_tag_id])
 }

@@ -1,3 +1,6 @@
+// Imports
+import { PlaceDetailsByGoogle } from "./api";
+
 // Tag Form Data
 export type TagFormData = {
   phrase: string;
@@ -9,4 +12,7 @@ export type TagFormError = {
   keyword: string | null;
 };
 // AddPlace Form Data
-// AddPlace Form Error
+export type AddPlaceForm = {
+  placeByGoogle: PlaceDetailsByGoogle;
+  userAddedTags: string[];
+};

@@ -1,22 +1,35 @@
 // Imports
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
+import { findPlaceInDb } from "@/lib/api/helper/findPlaceByIdInDb";
 // Types
 import {
   ApiResponse,
   PlaceDetailsByGoogle,
   PlaceDetailsResponse,
+  PlacesAndTags,
 } from "@/types";
-import { findPlaceInDb } from "@/lib/api/helper/findPlaceByIdInDb";
+import { prisma } from "@/lib/prisma/prisma";
 
 //
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
   const placeId = searchParams.get("place-id");
 
   try {
+    const uniqueId = token?.unique_id;
+    if (!uniqueId) {
+      throw new ApiError("No user found.", 401);
+    }
+
     if (!process.env.GOOGLE_PLACES_API_KEY) {
       throw new ApiError("Server Configuration Error.", 500);
     }
@@ -28,6 +41,7 @@ export async function GET(request: NextRequest) {
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${process.env.GOOGLE_PLACES_API_KEY}`
     );
+    console.log(response);
     if (!response.ok) {
       throw new ApiError("Error from external api.", response.status);
     }
@@ -48,11 +62,16 @@ export async function GET(request: NextRequest) {
       throw new ApiError("Error from external api.Incomplelete Response.", 404);
     }
 
-    const placeByDb = await findPlaceInDb(
-      placeByGoogle.place_id,
-      placeByGoogle.geometry.location.lat,
-      placeByGoogle.geometry.location.lng,
-      placeByGoogle.formatted_address
+    const placeByDb: PlacesAndTags | null = await prisma.$transaction(
+      async (tx) => {
+        return await findPlaceInDb(
+          tx,
+          placeByGoogle.place_id,
+          placeByGoogle.geometry.location.lat,
+          placeByGoogle.geometry.location.lng,
+          placeByGoogle.formatted_address
+        );
+      }
     );
 
     const placeDetails: PlaceDetailsResponse = {

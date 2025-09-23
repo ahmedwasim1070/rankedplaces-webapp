@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       },
     });
     if (!user) {
-      throw new ApiError("No user found.", 404);
+      throw new ApiError("No user found.", 401);
     }
 
     const isTagInDb = await prisma.tags.findUnique({
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     const status = error instanceof ApiError ? error.status : 500;
     // Console
     console.error(
-      "Error in /create/tag.",
+      "Error in /add/tag.",
       "Message : ",
       message,
       "Error : ",
