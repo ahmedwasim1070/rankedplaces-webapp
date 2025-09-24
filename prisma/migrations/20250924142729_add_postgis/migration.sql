@@ -19,7 +19,6 @@ CREATE TABLE "public"."Places" (
     "city" TEXT NOT NULL,
     "lat" DOUBLE PRECISION NOT NULL,
     "lng" DOUBLE PRECISION NOT NULL,
-    "geom" geometry(Point, 4326),
     "country" TEXT NOT NULL,
     "country_code" TEXT NOT NULL,
     "phone" TEXT,
@@ -94,7 +93,7 @@ ALTER TABLE "public"."Votes"
 ADD CONSTRAINT "Votes_place_tag_id_fkey" FOREIGN KEY ("place_tag_id") REFERENCES "public"."PlaceTags"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 -- PostGIS Extension and Geometry Setup
 CREATE EXTENSION IF NOT EXISTS postgis;
--- Add geometry column to Places table
+--
 ALTER TABLE "public"."Places"
 ADD COLUMN geom geometry(Point, 4326);
 -- Create spatial index for efficient queries
@@ -104,14 +103,13 @@ UPDATE "public"."Places"
 SET geom = ST_SetSRID(ST_MakePoint(lng, lat), 4326)
 WHERE lat IS NOT NULL
     AND lng IS NOT NULL;
--- Create function to auto-update geom when lat/lng changes
+-- Function + Trigger
 CREATE OR REPLACE FUNCTION public.places_set_geom() RETURNS TRIGGER AS $$ BEGIN IF NEW.lat IS NOT NULL
     AND NEW.lng IS NOT NULL THEN NEW.geom := ST_SetSRID(ST_MakePoint(NEW.lng, NEW.lat), 4326);
 END IF;
 RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
--- Create trigger to keep geom in sync
 CREATE TRIGGER set_geom_before_insert_update BEFORE
 INSERT
     OR

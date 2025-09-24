@@ -25,7 +25,7 @@ export const findPlaceInDb: FindPlaceInDb = async (
   let place = await tx.places.findUnique({
     where: { place_id: placeId },
     include: {
-      place_tags: {
+      place_tag: {
         include: {
           tag: true,
         },
@@ -52,7 +52,7 @@ export const findPlaceInDb: FindPlaceInDb = async (
       ],
     },
     include: {
-      place_tags: {
+      place_tag: {
         include: {
           tag: true,
         },

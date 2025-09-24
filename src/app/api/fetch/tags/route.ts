@@ -25,12 +25,12 @@ export async function GET(request: NextRequest) {
         include: {
           _count: {
             select: {
-              place_tags: true,
+              place_tag: true,
             },
           },
         },
         orderBy: {
-          place_tags: {
+          place_tag: {
             _count: "desc",
           },
         },
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
       const tags: countryFetchsTagResponse[] = await prisma.tags.findMany({
         where: {
-          place_tags: {
+          place_tag: {
             some: {
               place: { country_code: countryCode },
             },
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
         include: {
           _count: {
             select: {
-              place_tags: {
+              place_tag: {
                 where: {
                   place: { country_code: countryCode },
                 },
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
           },
         },
         orderBy: {
-          place_tags: {
+          place_tag: {
             _count: "desc",
           },
         },

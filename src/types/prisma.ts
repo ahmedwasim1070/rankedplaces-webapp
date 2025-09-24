@@ -4,7 +4,7 @@ import { Prisma } from "@/generated/prisma";
 // lib function findPlace
 export type PlacesAndTags = Prisma.PlacesGetPayload<{
   include: {
-    place_tags: {
+    place_tag: {
       include: {
         tag: true;
       };
@@ -18,7 +18,7 @@ export type worldFetchTagsResponse = Prisma.TagsGetPayload<{
   include: {
     _count: {
       select: {
-        place_tags: true;
+        place_tag: true;
       };
     };
   };
@@ -28,7 +28,7 @@ export type countryFetchsTagResponse = Prisma.TagsGetPayload<{
   include: {
     _count: {
       select: {
-        place_tags: {
+        place_tag: {
           where: {
             place: { country: string };
           };
@@ -42,7 +42,7 @@ export type cityFetchTagsResponse = Prisma.TagsGetPayload<{
   include: {
     _count: {
       select: {
-        place_tags: {
+        place_tag: {
           where: {
             place: { country: string; city: string };
           };

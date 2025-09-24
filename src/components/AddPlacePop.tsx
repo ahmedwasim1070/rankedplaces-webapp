@@ -20,6 +20,8 @@ interface AddPlaceSelectorProps {
 };
 interface AddPlaceConfirmationProps {
     selectedPlaceDetails: PlaceDetailsResponse;
+    setSelectedPlaceDetails: React.Dispatch<React.SetStateAction<PlaceDetailsResponse | null>>;
+    setIsAddPlacePop: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 // 
@@ -239,7 +241,7 @@ const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSel
 }
 
 // 
-const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProps) => {
+const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, setIsAddPlacePop }: AddPlaceConfirmationProps) => {
     // Provider
     // Loaction
     const { urlParams } = useLocationProvider();
@@ -321,7 +323,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
     // handle tag select
     const handleTagSelect = (tagName: string) => {
         setSelectedTags((prev) => {
-            const isAlreadyExists: boolean = prev.some(tag => tag === tagName) || (selectedPlaceDetails.dbData ? selectedPlaceDetails.dbData.place_tags.some(placeTag => placeTag.tag.name === tagName) : false);
+            const isAlreadyExists: boolean = prev.some(tag => tag === tagName) || (selectedPlaceDetails.dbData ? selectedPlaceDetails.dbData.place_tag.some(placeTag => placeTag.tag.name === tagName) : false);
             if (isAlreadyExists) {
                 toast.error("Tag already exsists");
                 return [...prev];
@@ -354,13 +356,25 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
                 userAddedTags: selectedTags,
             };
 
-            const response = await fetch(`/api/add/place`, {
+            const res = await fetch(`/api/add/place`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify(formData),
             });
+            const data = (await res.json()) as ApiResponse<null | never>;
+
+            if (!data.success) {
+                throw new Error(data.message);
+            }
+
+            setSelectedPlaceDetails(null);
+            setSuggestedTags(null);
+            setSelectedTags([]);
+            setCity(null);
+            setCountry(null);
+            setIsAddPlacePop(false);
         } catch (err) {
             // Message
             const msg =
@@ -381,16 +395,12 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
 
         // Automatically adds the tag if urlParams selected is not in with the place
         if (urlParams.tag !== 'All') {
-            if (selectedPlaceDetails.dbData?.place_tags) {
-                const isTagAlreadyInPlace = selectedPlaceDetails.dbData.place_tags.find((placeTag) => placeTag.tag.name === urlParams.tag);
-                if (!isTagAlreadyInPlace) {
-                    setSelectedTags(prev => [...prev, urlParams.tag])
-                }
-            } else {
-                setSelectedTags(prev => [...prev, urlParams.tag])
+            const isTagAlreadyInPlace = selectedPlaceDetails.dbData?.place_tag.some((placeTag) => placeTag.tag.name === urlParams.tag);
+            if (!isTagAlreadyInPlace) {
+                handleTagSelect(urlParams.tag);
             }
         }
-    }, [selectedPlaceDetails])
+    }, [])
 
     return (
         <div>
@@ -438,8 +448,8 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
 
                 {/* Tags */}
                 <div className="flex flex-row items-center flex-wrap gap-1 my-2">
-                    {(selectedPlaceDetails.dbData && selectedPlaceDetails.dbData.place_tags) &&
-                        selectedPlaceDetails.dbData.place_tags.map((placeTags, idx) => (
+                    {(selectedPlaceDetails.dbData && selectedPlaceDetails.dbData.place_tag) &&
+                        selectedPlaceDetails.dbData.place_tag.map((placeTags, idx) => (
                             <div key={idx} className="rounded-full bg-primary px-2.5 py-0.5">
                                 <p className="text-[13px] text-secondary">{placeTags.tag.name}</p>
                             </div>
@@ -518,7 +528,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails }: AddPlaceConfirmationProp
             </div>
 
             {/*  */}
-            <button disabled={isAddingPlace || selectedTags.length === 0} className="w-full bg-primary text-white mt-2 rounded-lg py-2 font-semibold border-2 border-primary enabled:hover:bg-transparent enabled:hover:text-primary transition-colors enabled:cursor-pointer disabled:bg-primary/60">
+            <button onClick={handlePlaceAdd} disabled={isAddingPlace || selectedTags.length === 0} className="w-full bg-primary text-white mt-2 rounded-lg py-2 font-semibold border-2 border-primary enabled:hover:bg-transparent enabled:hover:text-primary transition-colors enabled:cursor-pointer disabled:bg-primary/60">
                 {isAddingPlace && (<Loader dotSize="3" className="my-2" />)}
                 <p>Countinue</p>
             </button>
@@ -554,7 +564,7 @@ function AddPlacePop() {
                 )}
 
                 {/*  */}
-                {!selectedPlaceDetails ? (< AddPlaceSelector setIsLoading={setIsLoading} setSelectedPlaceDetails={setSelectedPlaceDetails} />) : (<AddPlaceConfirmation selectedPlaceDetails={selectedPlaceDetails} />)}
+                {!selectedPlaceDetails ? (< AddPlaceSelector setIsLoading={setIsLoading} setSelectedPlaceDetails={setSelectedPlaceDetails} />) : (<AddPlaceConfirmation selectedPlaceDetails={selectedPlaceDetails} setSelectedPlaceDetails={setSelectedPlaceDetails} setIsAddPlacePop={setIsAddPlacePop} />)}
 
             </div>
         </section>
