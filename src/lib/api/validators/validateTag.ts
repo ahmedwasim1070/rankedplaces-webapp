@@ -1,11 +1,10 @@
 // Imports
 import { rankingPhrases } from "@/lib/constants/rankingPhrases";
-
 // Types
-type TagFormValidator = (phrase: string, keyword: string) => string | null;
+type IsValidTag = (phrase: string, keyword: string) => string | null;
 
 //
-const tagFormValidator: TagFormValidator = (phrase, keyword) => {
+export const isValidTag: IsValidTag = (phrase, keyword) => {
   if (
     !phrase ||
     typeof phrase !== "string" ||
@@ -20,5 +19,3 @@ const tagFormValidator: TagFormValidator = (phrase, keyword) => {
 
   return null;
 };
-
-export default tagFormValidator;

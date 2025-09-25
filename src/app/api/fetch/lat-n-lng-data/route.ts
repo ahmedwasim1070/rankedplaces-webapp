@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiError } from "@/lib/error/ApiError";
 // Types
 import { ApiResponse, LatNLngDataResponse } from "@/types";
+import { isValidateLatLng } from "@/lib/api/validators/validateLatnLng";
 
 //
 export async function GET(request: NextRequest) {
@@ -13,14 +14,7 @@ export async function GET(request: NextRequest) {
   const lng = parseFloat(searchParams.get("lng") || "");
 
   try {
-    if (
-      isNaN(lat) ||
-      lat < -90 ||
-      lat < 90 ||
-      isNaN(lng) ||
-      lng < -180 ||
-      lng < 180
-    ) {
+    if (!isValidateLatLng(lat, lng)) {
       throw new ApiError("Latitude and Longitude is Invalid or Missing.", 400);
     }
 

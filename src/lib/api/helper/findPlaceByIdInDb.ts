@@ -1,6 +1,8 @@
 // Imports
 import { PlacesAndTags } from "@/types";
+import { sanitizeString } from "@/utils";
 import { Prisma } from "@prisma/client";
+import { isValidLatnLng } from "../validators/validateLatnLng";
 
 //
 const COORD_TOLERANCE = 0.0001;
@@ -22,8 +24,14 @@ export const findPlaceInDb: FindPlaceInDb = async (
   lng,
   address
 ) => {
+  const sanitizedPlaceId = sanitizeString(placeId, 100);
+  if (!isValidLatnLng(lat, lng)) {
+    return null;
+  }
+  const sanitizedAddress = sanitizeString(address, 500);
+
   let place = await tx.places.findUnique({
-    where: { place_id: placeId },
+    where: { place_id: sanitizedPlaceId },
     include: {
       place_tag: {
         include: {
@@ -38,7 +46,7 @@ export const findPlaceInDb: FindPlaceInDb = async (
   place = await tx.places.findFirst({
     where: {
       AND: [
-        { address: { equals: address, mode: "insensitive" } },
+        { address: { equals: sanitizedAddress, mode: "insensitive" } },
         {
           lat: {
             gte: lat - COORD_TOLERANCE,

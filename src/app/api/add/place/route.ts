@@ -3,8 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
+import { isValidateLatLng } from "@/lib/api/validators/validateLatnLng";
 import { prisma } from "@/lib/prisma/prisma";
 import { findPlaceInDb } from "@/lib/api/helper/findPlaceByIdInDb";
+import { validateTags } from "@/lib/api/validators/validateTags";
+// Utils
+import { sanitizeString } from "@/utils";
 // Types
 import { AddPlaceForm, ApiResponse } from "@/types";
 import { Tags } from "@/generated/prisma";
@@ -35,18 +39,12 @@ export async function POST(request: NextRequest) {
       throw new ApiError("No user found.", 401);
     }
 
-    if (
-      !userAddedTags ||
-      userAddedTags.length <= 0 ||
-      userAddedTags.length > 6
-    ) {
-      throw new ApiError(
-        "Tags should be more then one and less then six.",
-        404
-      );
+    const sanitizedTags = validateTags(userAddedTags);
+    if (sanitizedTags.length <= 0 || sanitizedTags.length > 6) {
+      throw new ApiError("Tags should be between 1 and 6 valid tags.", 400);
     }
 
-    const uniqueUserAddedTags = [...new Set(userAddedTags)];
+    const uniqueUserAddedTags = [...new Set(sanitizedTags)];
 
     const tagsInDb: Tags[] = await prisma.tags.findMany({
       where: {
@@ -54,82 +52,126 @@ export async function POST(request: NextRequest) {
       },
     });
     if (!tagsInDb || tagsInDb.length === 0) {
-      throw new ApiError("One or more Tags does not exsits.", 404);
+      throw new ApiError("One or more tags do not exist.", 404);
     }
 
     if (
       !placeByGoogle ||
       !placeByGoogle.place_id ||
-      !placeByGoogle.geometry.location.lat ||
-      !placeByGoogle.geometry.location.lng ||
-      !placeByGoogle.formatted_phone_number
+      !placeByGoogle.geometry?.location?.lat ||
+      !placeByGoogle.geometry?.location?.lng ||
+      !placeByGoogle.name ||
+      !placeByGoogle.formatted_address
     ) {
-      throw new ApiError("Invalid Place data.", 404);
+      throw new ApiError("Invalid or incomplete place data.", 400);
     }
+
+    if (
+      !isValidateLatLng(
+        placeByGoogle.geometry.location.lat,
+        placeByGoogle.geometry.location.lng
+      )
+    ) {
+      throw new ApiError("Invalid latitude or longitude values.", 400);
+    }
+
+    const sanitizedPlace = {
+      place_id: sanitizeString(placeByGoogle.place_id, 100),
+      name: sanitizeString(placeByGoogle.name, 255),
+      formatted_address: sanitizeString(placeByGoogle.formatted_address, 500),
+      lat: placeByGoogle.geometry.location.lat,
+      lng: placeByGoogle.geometry.location.lng,
+      category: placeByGoogle.types?.[0]
+        ? sanitizeString(placeByGoogle.types[0], 100)
+        : "establishment",
+      international_phone_number: placeByGoogle.international_phone_number
+        ? sanitizeString(placeByGoogle.international_phone_number, 50)
+        : null,
+      website: placeByGoogle.website
+        ? sanitizeString(placeByGoogle.website, 500)
+        : null,
+      url: placeByGoogle.url
+        ? sanitizeString(placeByGoogle.url, 500)
+        : "https://maps.google.com",
+      rating:
+        typeof placeByGoogle.rating === "number" ? placeByGoogle.rating : 0.0,
+      user_ratings_total:
+        typeof placeByGoogle.user_ratings_total === "number"
+          ? placeByGoogle.user_ratings_total
+          : 0,
+    };
 
     const result = await prisma.$transaction(async (tx) => {
       const placeInDb = await findPlaceInDb(
         tx,
-        placeByGoogle.place_id,
-        placeByGoogle.geometry.location.lat,
-        placeByGoogle.geometry.location.lng,
-        placeByGoogle.formatted_address
+        sanitizedPlace.place_id,
+        sanitizedPlace.lat,
+        sanitizedPlace.lng,
+        sanitizedPlace.formatted_address
       );
 
       let place;
       if (placeInDb) {
-        place = await tx.places.update({
-          where: { id: placeInDb.id },
-          data: {
-            place_id: placeByGoogle.place_id,
-            name: placeByGoogle.name,
-            address: placeByGoogle.formatted_address,
-            lat: placeByGoogle.geometry.location.lat,
-            lng: placeByGoogle.geometry.location.lng,
-            phone: placeByGoogle.international_phone_number,
-            website: placeByGoogle.website,
-            maps_url: placeByGoogle.url,
-            review_value: placeByGoogle.rating,
-            review_amount: placeByGoogle.user_ratings_total,
-          },
-        });
-
         const tagIds = tagsInDb.map((tag) => tag.id);
-        const tagsWithPlace = await tx.placeTags.findMany({
+        const existingPlaceTags = await tx.placeTags.findMany({
           where: {
+            place_id: placeInDb.id,
             tag_id: { in: tagIds },
           },
         });
 
-        if (tagsWithPlace || tagsWithPlace > 0) {
+        if (existingPlaceTags && existingPlaceTags.length > 0) {
           throw new ApiError(
-            "One or more tag already exsist's with this place",
+            "One or more tags already exist for this place",
             409
           );
         }
+
+        place = await tx.places.update({
+          where: { id: placeInDb.id },
+          data: {
+            place_id: sanitizedPlace.place_id,
+            name: sanitizedPlace.name,
+            address: sanitizedPlace.formatted_address,
+            lat: sanitizedPlace.lat,
+            lng: sanitizedPlace.lng,
+            phone: sanitizedPlace.international_phone_number,
+            website: sanitizedPlace.website,
+            maps_url: sanitizedPlace.url,
+            review_value: sanitizedPlace.rating,
+            review_amount: sanitizedPlace.user_ratings_total,
+          },
+        });
       } else {
+        const cityComponent = placeByGoogle.address_components
+          ? getAddressComponent(placeByGoogle.address_components, "locality")
+          : null;
+        const countryComponent = placeByGoogle.address_components
+          ? getAddressComponent(placeByGoogle.address_components, "country")
+          : null;
+
         place = await tx.places.create({
           data: {
-            place_id: placeByGoogle.place_id,
-            name: placeByGoogle.name,
-            category: placeByGoogle.types[0],
-            address: placeByGoogle.formatted_address,
-            city:
-              getAddressComponent(placeByGoogle.address_components, "locality")
-                ?.long_name || "Unknown",
-            lat: placeByGoogle.geometry.location.lat,
-            lng: placeByGoogle.geometry.location.lng,
-            country:
-              getAddressComponent(placeByGoogle.address_components, "country")
-                ?.long_name || "Unknown",
-            country_code:
-              getAddressComponent(placeByGoogle.address_components, "country")
-                ?.short_name || "Unknown",
-            phone: placeByGoogle.international_phone_number,
-            website: placeByGoogle.website,
-            maps_url: placeByGoogle.url || "https://maps.google.com",
-            review_value: placeByGoogle.rating,
-            review_amount: placeByGoogle.user_ratings_total,
+            place_id: sanitizedPlace.place_id,
+            name: sanitizedPlace.name,
+            category: sanitizedPlace.category,
+            address: sanitizedPlace.formatted_address,
+            city: cityComponent?.long_name
+              ? sanitizeString(cityComponent.long_name, 100)
+              : "Unknown",
+            lat: sanitizedPlace.lat,
+            lng: sanitizedPlace.lng,
+            country: countryComponent?.long_name
+              ? sanitizeString(countryComponent.long_name, 100)
+              : "Unknown",
+            country_code: countryComponent?.short_name
+              ? sanitizeString(countryComponent.short_name, 10)
+              : "Unknown",
+            phone: sanitizedPlace.international_phone_number,
+            website: sanitizedPlace.website,
+            maps_url: sanitizedPlace.url,
+            review_value: sanitizedPlace.rating,
+            review_amount: sanitizedPlace.user_ratings_total,
             added_by_id: user.id,
           },
         });
@@ -142,34 +184,38 @@ export async function POST(request: NextRequest) {
         })),
       });
 
-      //
       return place;
     });
 
     if (!result) {
-      throw new ApiError("Place not found invalid Place Id.", 404);
+      throw new ApiError("Failed to create place.", 500);
     }
 
-    return NextResponse.json<ApiResponse<null>>({
-      success: true,
-      data: null,
-      message: "Added Place with provided tags.",
-    });
+    return NextResponse.json<ApiResponse<null>>(
+      {
+        success: true,
+        data: null,
+        message: "Added place with provided tags successfully.",
+      },
+      {
+        status: 200,
+      }
+    );
     //
   } catch (error) {
     // Message
     const message =
-      error instanceof ApiError ? error.message : "Unexpected error.";
+      error instanceof ApiError
+        ? error.message
+        : "An unexpected error occurred.";
     // Status
     const status = error instanceof ApiError ? error.status : 500;
     // Console
-    console.error(
-      "Error in /add/place.",
-      "Message : ",
-      message,
-      "Error : ",
-      error
-    );
+    console.error("Error in /add/place API:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
     // Response
     return NextResponse.json<ApiResponse<never>>(
       {

@@ -4,10 +4,11 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma/prisma";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
-import tagFormValidator from "@/lib/api/validators/tagForm.validator";
+import tagFormValidator from "@/lib/api/validators/validateTag";
 // Types
 import { ApiResponse, TagFormData } from "@/types";
 import { Tags } from "@/generated/prisma";
+import { sanitizeString } from "@/utils";
 
 //
 export async function POST(request: NextRequest) {
@@ -16,18 +17,21 @@ export async function POST(request: NextRequest) {
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
+
     const uniqueId = token?.unique_id;
+    if (!uniqueId) {
+      throw new ApiError("No user found.", 401);
+    }
 
     const body: TagFormData = await request.json();
     const { phrase, keyword } = body;
 
-    //
     const errorInData = tagFormValidator(phrase, keyword);
     if (errorInData) {
       throw new ApiError(errorInData, 400);
     }
 
-    const tag = phrase + " " + keyword;
+    const sanitizeTag = sanitizeString(phrase + " " + keyword);
 
     const user = await prisma.users.findUnique({
       where: {
@@ -40,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     const isTagInDb = await prisma.tags.findUnique({
       where: {
-        name: tag,
+        name: sanitizeTag,
       },
     });
     if (isTagInDb) {
@@ -49,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     const tagInDb = await prisma.tags.create({
       data: {
-        name: tag,
+        name: sanitizeTag,
         author_id: user.id,
       },
     });
@@ -57,8 +61,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json<ApiResponse<Tags>>(
       {
         success: true,
-        message: "Successfully created tag.",
         data: tagInDb,
+        message: "Successfully created tag.",
       },
       {
         status: 200,
@@ -71,13 +75,11 @@ export async function POST(request: NextRequest) {
     // Status
     const status = error instanceof ApiError ? error.status : 500;
     // Console
-    console.error(
-      "Error in /add/tag.",
-      "Message : ",
-      message,
-      "Error : ",
-      error
-    );
+    console.error("Error in /add/tag API:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
     // Response
     return NextResponse.json<ApiResponse<never>>(
       {

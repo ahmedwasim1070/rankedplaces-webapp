@@ -41,7 +41,6 @@ export async function GET(request: NextRequest) {
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${process.env.GOOGLE_PLACES_API_KEY}`
     );
-    console.log(response);
     if (!response.ok) {
       throw new ApiError("Error from external api.", response.status);
     }
