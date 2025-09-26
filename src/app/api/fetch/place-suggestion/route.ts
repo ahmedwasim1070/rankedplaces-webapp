@@ -74,13 +74,11 @@ export async function GET(request: NextRequest) {
     // Status
     const status = error instanceof ApiError ? error.status : 500;
     // Console
-    console.error(
-      "Error in fetch/place-suggestion.",
-      "Message : ",
-      message,
-      "Error : ",
-      error
-    );
+    console.error("Error in /fetch/place-suggestion API:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
     // Response
     return NextResponse.json<ApiResponse<never>>(
       {

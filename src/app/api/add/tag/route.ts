@@ -4,7 +4,7 @@ import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma/prisma";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
-import tagFormValidator from "@/lib/api/validators/validateTag";
+import { isValidTag } from "@/lib/api/validators";
 // Types
 import { ApiResponse, TagFormData } from "@/types";
 import { Tags } from "@/generated/prisma";
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const body: TagFormData = await request.json();
     const { phrase, keyword } = body;
 
-    const errorInData = tagFormValidator(phrase, keyword);
+    const errorInData = isValidTag(phrase, keyword);
     if (errorInData) {
       throw new ApiError(errorInData, 400);
     }

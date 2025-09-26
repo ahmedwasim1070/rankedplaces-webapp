@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiError } from "@/lib/error/ApiError";
 // Types
 import { ApiResponse, LatNLngDataResponse } from "@/types";
-import { isValidateLatLng } from "@/lib/api/validators/validateLatnLng";
+import { isValidLatnLng } from "@/lib/api/validators";
 
 //
 export async function GET(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const lng = parseFloat(searchParams.get("lng") || "");
 
   try {
-    if (!isValidateLatLng(lat, lng)) {
+    if (!isValidLatnLng(lat, lng)) {
       throw new ApiError("Latitude and Longitude is Invalid or Missing.", 400);
     }
 
@@ -62,13 +62,11 @@ export async function GET(request: NextRequest) {
     // Status
     const status = error instanceof ApiError ? error.status : 500;
     // Console
-    console.error(
-      "Error in fetch/lat-n-lng-data.",
-      "Message : ",
-      message,
-      "Error : ",
-      error
-    );
+    console.error("Error in /fetch/lat-n-lng-data API:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString(),
+    });
     // Response
     return NextResponse.json<ApiResponse<never>>(
       {

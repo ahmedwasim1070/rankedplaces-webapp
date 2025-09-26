@@ -3,16 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
-import { isValidateLatLng } from "@/lib/api/validators/validateLatnLng";
+import { isValidTags, isValidLatnLng } from "@/lib/api/validators";
 import { prisma } from "@/lib/prisma/prisma";
 import { findPlaceInDb } from "@/lib/api/helper/findPlaceByIdInDb";
-import { validateTags } from "@/lib/api/validators/validateTags";
 // Utils
-import { sanitizeString } from "@/utils";
+import { sanitizeString, getAddressComponent } from "@/utils";
 // Types
 import { AddPlaceForm, ApiResponse } from "@/types";
 import { Tags } from "@/generated/prisma";
-import { getAddressComponent } from "@/utils";
 
 //
 export async function POST(request: NextRequest) {
@@ -39,7 +37,7 @@ export async function POST(request: NextRequest) {
       throw new ApiError("No user found.", 401);
     }
 
-    const sanitizedTags = validateTags(userAddedTags);
+    const sanitizedTags = isValidTags(userAddedTags);
     if (sanitizedTags.length <= 0 || sanitizedTags.length > 6) {
       throw new ApiError("Tags should be between 1 and 6 valid tags.", 400);
     }
@@ -67,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (
-      !isValidateLatLng(
+      !isValidLatnLng(
         placeByGoogle.geometry.location.lat,
         placeByGoogle.geometry.location.lng
       )
