@@ -1,7 +1,7 @@
 // Imports
-import { MapPin, Search, Star, X } from "lucide-react"
 import React, { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { MapPin, Search, Star, X, ChevronLeft } from "lucide-react"
 // Utils
 import { getAddressComponent } from "@/utils";
 // Types
@@ -369,6 +369,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
                 throw new Error(data.message);
             }
 
+            toast.success(data.message);
             setSelectedPlaceDetails(null);
             setSuggestedTags(null);
             setSelectedTags([]);
@@ -387,6 +388,10 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
             setIsAddingPlace(false);
         }
     }
+    // 
+    const handleBack = () => {
+        setSelectedPlaceDetails(null);
+    };
 
     // Effects
     useEffect(() => {
@@ -404,6 +409,11 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
 
     return (
         <div>
+            {/*  */}
+            <button onClick={() => handleBack()} className="bg-white shadow-sm rounded-full p-2 absolute left-3 top-2.5 hover:bg-secondary/20 transition-colors cursor-pointer">
+                <ChevronLeft className="w-5 h-5 text-secondary" />
+            </button>
+
             {/*  */}
             <h3 className="text-2xl text-secondary font-semibold">
                 Add Place
@@ -520,17 +530,13 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
                                 )
                             }
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
 
             {/*  */}
             <button onClick={handlePlaceAdd} disabled={isAddingPlace || selectedTags.length === 0} className="w-full bg-primary text-white mt-2 rounded-lg py-2 font-semibold border-2 border-primary enabled:hover:bg-transparent enabled:hover:text-primary transition-colors enabled:cursor-pointer disabled:bg-primary/60">
-                {isAddingPlace && (<Loader dotSize="3" className="my-2" />)}
-                <p>Countinue</p>
+                {isAddingPlace ? (<Loader dotSize="3" className="my-2" />) : (<p>Countinue</p>)}
             </button>
         </div >
     );
