@@ -12,6 +12,7 @@ import {
   countryFetchsTagResponse,
   cityFetchTagsResponse,
 } from "@/types";
+import { isValidLatnLng } from "@/lib/api/validators";
 
 //
 export async function GET(request: NextRequest) {
@@ -95,14 +96,7 @@ export async function GET(request: NextRequest) {
 
       const lat = parseFloat(searchParams.get("lat") || "");
       const lng = parseFloat(searchParams.get("lng") || "");
-      if (
-        isNaN(lat) ||
-        lat < -90 ||
-        lat > 90 ||
-        isNaN(lng) ||
-        lng < -180 ||
-        lng < 180
-      ) {
+      if (!isValidLatnLng(lat, lng)) {
         throw new ApiError(
           "Latitude/Longitude is Invalid or Missing which is required in city fetchBy.",
           400
@@ -110,17 +104,22 @@ export async function GET(request: NextRequest) {
       }
       const radiusMeters = 50000;
 
-      // Read sql file
-      const findTagsQuery = fs.readFileSync(
-        path.join(process.cwd(), "src/db/sql/find_tags_by_radius.sql"),
-        "utf8"
-      );
-
       const tags: cityFetchTagsResponse[] = await prisma.$queryRawUnsafe<any[]>(
-        findTagsQuery,
-        lng,
-        lat,
-        radiusMeters
+        `
+        SELECT t.id,
+        t.name,
+        COUNT(pt.*) AS tag_count
+        FROM "Tags" t
+        JOIN "PlaceTags" pt ON pt.tag_id = t.id
+        JOIN "Places" p ON pt.place_id = p.id
+        WHERE ST_DWithin(
+        geography(p.geom),
+        geography(ST_SetSRID(ST_MakePoint($1, $2), 4326)),
+        $3
+        )
+       GROUP BY t.id
+       ORDER BY tag_count DESC;
+`
       );
 
       return NextResponse.json<ApiResponse<cityFetchTagsResponse[]>>({

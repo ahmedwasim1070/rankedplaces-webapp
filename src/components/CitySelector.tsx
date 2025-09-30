@@ -11,7 +11,7 @@ import { useLocationProvider } from "@/providers/LocationProvider";
 function CitySelector() {
     // Providers
     // Location
-    const { locationCookieData, setLocationCookieData, urlParams, setParams } = useLocationProvider();
+    const { urlParams, setParams } = useLocationProvider();
     // States
     // Cities
     const [cities, setCities] = useState<CitiesResponse[] | null>(() => {
