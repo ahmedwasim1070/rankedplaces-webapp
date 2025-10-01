@@ -14,20 +14,7 @@ function CitySelector() {
     const { urlParams, setParams } = useLocationProvider();
     // States
     // Cities
-    const [cities, setCities] = useState<CitiesResponse[] | null>(() => {
-        if (urlParams.country) {
-            const stored = localStorage.getItem("cities");
-            const storedCities: Record<string, CitiesResponse[]> | null = stored ? JSON.parse(stored) : null;
-            if (storedCities && storedCities[urlParams.country]) {
-                return storedCities[urlParams.country];
-            } else {
-                localStorage.removeItem("cities");
-                return null;
-            }
-        } else {
-            return null;
-        }
-    });
+    const [cities, setCities] = useState<CitiesResponse[] | null>(null);
     // Loader
     const [isLoading, setIsLoading] = useState<boolean>(false);
     // Error message 
@@ -42,6 +29,24 @@ function CitySelector() {
     };
 
     // Effects
+    // Try to find cities from localSorage if any
+    useEffect(() => {
+        // if it's SSR returns
+        if (typeof window === "undefined") return;
+
+        if (urlParams.country) {
+            const stored = localStorage.getItem("cities");
+            const storedCities: Record<string, CitiesResponse[]> | null = stored ? JSON.parse(stored) : null;
+            if (storedCities && storedCities[urlParams.country]) {
+                setCities(storedCities[urlParams.country]);
+            } else {
+                localStorage.removeItem("cities");
+                setCities(null);
+            }
+        } else {
+            setCities(null);
+        }
+    }, [urlParams.country])
     // Fetch cities if not any 
     useEffect(() => {
         // Fetch city from (/api/fetchCities)
@@ -98,7 +103,7 @@ function CitySelector() {
                 (<option hidden>
                     Select City
                 </option>) :
-                (<option selected hidden>
+                (<option defaultValue={urlParams.city} hidden>
                     {urlParams.city}
                 </option>)
             }

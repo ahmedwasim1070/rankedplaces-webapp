@@ -96,8 +96,7 @@ export const GlobalProvider = ({ children }: Props) => {
 
             {/* Session Provider */}
             <SessionProvider>
-                {/* Children Components */}
-                {children}
+                {pathname !== '/' ? !isLocationProviderLoading && children : children}
             </SessionProvider>
         </GlobalContext.Provider >
     );

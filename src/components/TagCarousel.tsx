@@ -93,14 +93,11 @@ function TagCarousel() {
         let url = "/api/fetch/tags";
         switch (pathname) {
             case "/":
-                url = url + "/?fetch-by=world";
-                return url;
+                return url + "/?fetch-by=world";
             case "/top-country-places":
-                url = url + `/?fetch-by=country&country-code=${urlParams.country}`;
-                return url;
+                return url + `/?fetch-by=country&country-code=${urlParams.country}`;
             case "/top-city-places":
-                url = url + `/?fetch-by=city&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
-                return url;
+                return url + `/?fetch-by=city&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
             default:
                 return null;
         }
@@ -119,7 +116,10 @@ function TagCarousel() {
             setIsFetching(true);
 
             const url = getFetchTagUrl();
-            if (!url) return;
+            if (!url) {
+                setIsFetching(false);
+                return;
+            };
 
             try {
                 const res = await fetch(`${url}`);

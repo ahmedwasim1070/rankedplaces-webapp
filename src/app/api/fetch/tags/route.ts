@@ -1,7 +1,5 @@
 // Imports
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
 import { prisma } from "@/lib/prisma/prisma";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
@@ -102,25 +100,23 @@ export async function GET(request: NextRequest) {
           400
         );
       }
-      const radiusMeters = 50000;
+      const radius = 50000;
 
-      const tags: cityFetchTagsResponse[] = await prisma.$queryRawUnsafe<any[]>(
-        `
+      const tags = await prisma.$queryRaw<cityFetchTagsResponse[]>`
         SELECT t.id,
-        t.name,
-        COUNT(pt.*) AS tag_count
+          t.name,
+          COUNT(pt.*)::int AS tag_count
         FROM "Tags" t
         JOIN "PlaceTags" pt ON pt.tag_id = t.id
         JOIN "Places" p ON pt.place_id = p.id
         WHERE ST_DWithin(
         geography(p.geom),
-        geography(ST_SetSRID(ST_MakePoint($1, $2), 4326)),
-        $3
+        geography(ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)),
+        ${radius}
         )
-       GROUP BY t.id
-       ORDER BY tag_count DESC;
-`
-      );
+        GROUP BY t.id
+        ORDER BY tag_count DESC;
+      `;
 
       return NextResponse.json<ApiResponse<cityFetchTagsResponse[]>>({
         success: true,
@@ -128,7 +124,7 @@ export async function GET(request: NextRequest) {
         data: tags,
       });
     } else {
-      throw new ApiError("Invalid request type.", 400);
+      throw new ApiError("Invalid Fetch type.", 400);
     }
   } catch (error) {
     // Message

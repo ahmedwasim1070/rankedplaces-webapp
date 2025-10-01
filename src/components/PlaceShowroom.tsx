@@ -5,7 +5,9 @@ import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react';
 // Providers
 import { useLocationProvider } from '@/providers/LocationProvider';
-import AddPlaceBtn from './AddPlaceBtn';
+import { useGlobalProvider } from '@/providers/GlobalProvider';
+// Types
+import { ApiResponse } from '@/types';
 
 // Skeleton Profile Loader 
 const PlaceSkeletonLoader = () => {
@@ -52,11 +54,61 @@ function PlaceShowroom() {
     // Provider
     // Location
     const { urlParams } = useLocationProvider();
+    // Global
+    const { pathname } = useGlobalProvider();
     // States
     // Loader
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    // Places
+    const [places, setPlaces] = useState<null>(null);
+
+    // generate fetch tag url
+    const getFetchPlaceUrl = (): string | null => {
+        let url = "/api/fetch/places";
+        switch (pathname) {
+            case "/":
+                return url + `/?fetch-by=world&tag=${urlParams.tag}&page=${urlParams.page}`;
+            case "/top-country-places":
+                return url + `/?fetch-by=country&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}`;
+            case "/top-city-places":
+                return url + `/?fetch-by=city&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
+            default:
+                return null;
+        }
+    };
 
     // Effects
+    // Fetch Places if not any
+    useEffect(() => {
+        const fetchPlaces = async () => {
+            if (places) return;
+
+            setIsLoading(true);
+            const url = getFetchPlaceUrl();
+            if (!url) {
+                setIsLoading(false);
+                return;
+            };
+
+            try {
+                const res = await fetch(`${url}`);
+                const data = (await res.json()) as ApiResponse<null | never>;
+
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+
+                setPlaces(data.data);
+            } catch (err) {
+                // Message
+                const msg = err instanceof Error ? err.message : "Unexpected error.";
+                // 
+                console.error("Error in fetchPlaces in PlacesShowroom.", "Message : ", msg, "Error : ", err);
+            }
+        };
+
+        fetchPlaces();
+    }, [])
     return (
         <section className='min-w-full px-4 py-2 grid grid-cols-3 md:grid-cols-3 xxs:grid-cols-1 gap-y-4 gap-x-2'>
 
