@@ -5,6 +5,11 @@ import { ApiError } from "@/lib/error/ApiError";
 import { isValidLatnLng } from "@/lib/api/validators";
 // Types
 import { ApiResponse } from "@/types";
+import { prisma } from "@/lib/prisma/prisma";
+import { Places } from "@/generated/prisma";
+
+// Global
+const limit = 25;
 
 //
 export async function GET(request: NextRequest) {
@@ -24,6 +29,43 @@ export async function GET(request: NextRequest) {
     }
 
     if (fetchBy === "world") {
+      const worldPlaces: Places[] = await prisma.$queryRaw`
+        SELECT 
+          id,
+          place_id,
+          name,
+          pfp,
+          category,
+          address,
+          city,
+          lat,
+          lng,
+          country,
+          country_code,
+          phone,
+          website,
+          maps_url,
+          review_value,
+          review_amount,
+          total_up_votes,
+          total_down_votes,
+          added_by_id,
+          (total_up_votes - total_down_votes) AS score
+        FROM "Places"
+        ORDER BY score DESC
+        OFFSET ${(page - 1) * limit}
+        LIMIT ${limit}
+      `;
+
+      if (worldPlaces.length > 0) {
+        throw new ApiError("No Places found.", 404);
+      }
+
+      return NextResponse.json<ApiResponse<Places[]>>({
+        success: true,
+        message: "Successfully fetched places.",
+        data: worldPlaces,
+      });
     } else if (fetchBy === "country") {
       const countryCode = searchParams.get("country-code");
       if (

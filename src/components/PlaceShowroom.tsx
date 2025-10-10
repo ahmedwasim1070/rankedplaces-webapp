@@ -104,6 +104,8 @@ function PlaceShowroom() {
                 const msg = err instanceof Error ? err.message : "Unexpected error.";
                 // 
                 console.error("Error in fetchPlaces in PlacesShowroom.", "Message : ", msg, "Error : ", err);
+            } finally {
+                setIsLoading(false);
             }
         };
 
