@@ -11,7 +11,7 @@ import { useLocationProvider } from "@/providers/LocationProvider";
 function CitySelector() {
     // Providers
     // Location
-    const { urlParams, setParams } = useLocationProvider();
+    const { urlParams, locationCookieData, setLocationCookieData, setParams } = useLocationProvider();
     // States
     // Cities
     const [cities, setCities] = useState<CitiesResponse[] | null>(null);
@@ -24,8 +24,19 @@ function CitySelector() {
     const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selected = e.target.value;
         const selectedCityData = cities?.find((city) => city.name === selected) || null;
+
         if (!selectedCityData || !selectedCityData.name || !selectedCityData.lat || !selectedCityData.lng) return;
-        setParams(['city'], [selectedCityData.name]);
+        setParams(['city', 'lat', 'lng'], [selectedCityData.name, selectedCityData.lat.toString(), selectedCityData.lng.toString()]);
+
+        if (!locationCookieData) return;
+        const locationDataPayload = {
+            country: locationCookieData.country,
+            countryCode: locationCookieData.countryCode,
+            city: selectedCityData.name,
+            lat: selectedCityData.lat,
+            lng: selectedCityData.lng,
+        }
+        setLocationCookieData(locationDataPayload);
     };
 
     // Effects

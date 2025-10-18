@@ -4,9 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiError } from "@/lib/error/ApiError";
 import { isValidLatnLng } from "@/lib/api/validators";
 // Types
-import { ApiResponse } from "@/types";
+import { ApiResponse, PlacesResponse } from "@/types";
 import { prisma } from "@/lib/prisma/prisma";
-import { Places } from "@/generated/prisma";
 
 // Global
 const limit = 25;
@@ -28,44 +27,96 @@ export async function GET(request: NextRequest) {
       throw new ApiError("Invalid Tag name.", 400);
     }
 
+    let places: PlacesResponse[] | null = null;
     if (fetchBy === "world") {
-      const worldPlaces: Places[] = await prisma.$queryRaw`
+      if (tag === "All") {
+        places = await prisma.$queryRaw`
         SELECT 
-          id,
-          place_id,
-          name,
-          pfp,
-          category,
-          address,
-          city,
-          lat,
-          lng,
-          country,
-          country_code,
-          phone,
-          website,
-          maps_url,
-          review_value,
-          review_amount,
-          total_up_votes,
-          total_down_votes,
-          added_by_id,
-          (total_up_votes - total_down_votes) AS score
-        FROM "Places"
+          p.id,
+          p.place_id,
+          p.name,
+          p.pfp,
+          p.category,
+          p.address,
+          p.city,
+          p.lat,
+          p.lng,
+          p.country,
+          p.country_code,
+          p.phone,
+          p.website,
+          p.maps_url,
+          p.review_value,
+          p.review_amount,
+          p.total_up_votes,
+          p.total_down_votes,
+          p.added_by_id,
+          (p.total_up_votes - p.total_down_votes) AS score,
+          COALESCE(
+            json_agg(
+              DISTINCT jsonb_build_object(
+                'place_id', pt.place_id,
+                'tag_id', pt.tag_id,
+                'up_votes', pt.up_votes,
+                'down_votes', pt.down_votes,
+                'tag_name', t.name
+              )
+            ) FILTER (WHERE t.id IS NOT NULL),
+          '[]'
+          ) AS tags
+        FROM "Places" AS p
+        LEFT JOIN "PlaceTags" AS pt ON pt.place_id = p.id
+        LEFT JOIN "Tags" AS t ON t.id = pt.tag_id
+        GROUP BY p.id
         ORDER BY score DESC
         OFFSET ${(page - 1) * limit}
-        LIMIT ${limit}
+        LIMIT ${limit};
       `;
-
-      if (worldPlaces.length > 0) {
-        throw new ApiError("No Places found.", 404);
+      } else {
+        places = await prisma.$queryRaw`
+        SELECT 
+          p.id,
+          p.place_id,
+          p.name,
+          p.pfp,
+          p.category,
+          p.address,
+          p.city,
+          p.lat,
+          p.lng,
+          p.country,
+          p.country_code,
+          p.phone,
+          p.website,
+          p.maps_url,
+          p.review_value,
+          p.review_amount,
+          p.total_up_votes,
+          p.total_down_votes,
+          p.added_by_id,
+          (p.total_up_votes - p.total_down_votes) AS score,
+          COALESCE(
+            json_agg(
+              DISTINCT jsonb_build_object(
+                'place_id', pt.place_id,
+                'tag_id', pt.tag_id,
+                'up_votes', pt.up_votes,
+                'down_votes', pt.down_votes,
+                'tag_name', t.name
+              )
+            ) FILTER (WHERE t.id IS NOT NULL),
+          '[]'
+          ) AS tags
+        FROM "Places" AS p
+        LEFT JOIN "PlaceTags" AS pt ON pt.place_id = p.id
+        LEFT JOIN "Tags" AS t ON t.id = pt.tag_id AND t.name = ${tag}
+        WHERE t.name = ${tag}
+        GROUP BY p.id
+        ORDER BY score DESC
+        OFFSET ${(page - 1) * limit}
+        LIMIT ${limit};
+      `;
       }
-
-      return NextResponse.json<ApiResponse<Places[]>>({
-        success: true,
-        message: "Successfully fetched places.",
-        data: worldPlaces,
-      });
     } else if (fetchBy === "country") {
       const countryCode = searchParams.get("country-code");
       if (
@@ -77,6 +128,96 @@ export async function GET(request: NextRequest) {
           "Country code is required with country fetchBy.",
           400
         );
+      }
+
+      if (tag === "All") {
+        places = await prisma.$queryRaw`
+        SELECT 
+          p.id,
+          p.place_id,
+          p.name,
+          p.pfp,
+          p.category,
+          p.address,
+          p.city,
+          p.lat,
+          p.lng,
+          p.country,
+          p.country_code,
+          p.phone,
+          p.website,
+          p.maps_url,
+          p.review_value,
+          p.review_amount,
+          p.total_up_votes,
+          p.total_down_votes,
+          p.added_by_id,
+          (p.total_up_votes - p.total_down_votes) AS score,
+          COALESCE(
+            json_agg(
+              DISTINCT jsonb_build_object(
+                'place_id', pt.place_id,
+                'tag_id', pt.tag_id,
+                'up_votes', pt.up_votes,
+                'down_votes', pt.down_votes,
+                'tag_name', t.name
+              )
+            ) FILTER (WHERE t.id IS NOT NULL),
+          '[]'
+          ) AS tags
+        FROM "Places" AS p 
+        LEFT JOIN "PlaceTags" AS pt ON pt.place_id = p.id
+        LEFT JOIN "Tags" AS t ON t.id = pt.tag_id
+        WHERE p.country_code = ${countryCode}
+        GROUP BY p.id
+        ORDER BY score DESC
+        OFFSET ${(page - 1) * limit}
+        LIMIT ${limit};
+      `;
+      } else {
+        places = await prisma.$queryRaw`
+        SELECT 
+          p.id,
+          p.place_id,
+          p.name,
+          p.pfp,
+          p.category,
+          p.address,
+          p.city,
+          p.lat,
+          p.lng,
+          p.country,
+          p.country_code,
+          p.phone,
+          p.website,
+          p.maps_url,
+          p.review_value,
+          p.review_amount,
+          p.total_up_votes,
+          p.total_down_votes,
+          p.added_by_id,
+          (p.total_up_votes - p.total_down_votes) AS score,
+          COALESCE(
+            json_agg(
+              DISTINCT jsonb_build_object(
+                'place_id', pt.place_id,
+                'tag_id', pt.tag_id,
+                'up_votes', pt.up_votes,
+                'down_votes', pt.down_votes,
+                'tag_name', t.name
+              )
+            ) FILTER (WHERE t.id IS NOT NULL),
+          '[]'
+          ) AS tags
+        FROM "Places" AS p
+        LEFT JOIN "PlaceTags" AS pt ON pt.place_id = p.id
+        LEFT JOIN "Tags" AS t ON t.id = pt.tag_id AND t.name = ${tag}
+        WHERE p.country_code = ${countryCode} AND t.name = ${tag}
+        GROUP BY p.id
+        ORDER BY score DESC
+        OFFSET ${(page - 1) * limit}
+        LIMIT ${limit};
+      `;
       }
     } else if (fetchBy === "city") {
       const countryCode = searchParams.get("country-code");
@@ -96,9 +237,120 @@ export async function GET(request: NextRequest) {
           400
         );
       }
+
+      if (tag === "All") {
+        places = await prisma.$queryRaw`
+        SELECT 
+          p.id,
+          p.place_id,
+          p.name,
+          p.pfp,
+          p.category,
+          p.address,
+          p.city,
+          p.lat,
+          p.lng,
+          p.country,
+          p.country_code,
+          p.phone,
+          p.website,
+          p.maps_url,
+          p.review_value,
+          p.review_amount,
+          p.total_up_votes,
+          p.total_down_votes,
+          p.added_by_id,
+          (p.total_up_votes - p.total_down_votes) AS score,
+          COALESCE(
+            json_agg(
+              DISTINCT jsonb_build_object(
+                'place_id', pt.place_id,
+                'tag_id', pt.tag_id,
+                'up_votes', pt.up_votes,
+                'down_votes', pt.down_votes,
+                'tag_name', t.name
+              )
+            ) FILTER (WHERE t.id IS NOT NULL),
+          '[]'
+          ) AS tags
+        FROM "Places" AS p
+        LEFT JOIN "PlaceTags" AS pt ON pt.place_id = p.id
+        LEFT JOIN "Tags" AS t ON t.id = pt.tag_id
+        WHERE p.country_code = ${countryCode} AND ST_DWithin(
+          p.geom::geography,
+          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+          50000
+        )
+        GROUP BY p.id
+        ORDER BY score DESC
+        OFFSET ${(page - 1) * limit}
+        LIMIT ${limit};
+      `;
+      } else {
+        places = await prisma.$queryRaw`
+        SELECT 
+          p.id,
+          p.place_id,
+          p.name,
+          p.pfp,
+          p.category,
+          p.address,
+          p.city,
+          p.lat,
+          p.lng,
+          p.country,
+          p.country_code,
+          p.phone,
+          p.website,
+          p.maps_url,
+          p.review_value,
+          p.review_amount,
+          p.total_up_votes,
+          p.total_down_votes,
+          p.added_by_id,
+          (p.total_up_votes - p.total_down_votes) AS score,
+          COALESCE(
+            json_agg(
+              DISTINCT jsonb_build_object(
+                'place_id', pt.place_id,
+                'tag_id', pt.tag_id,
+                'up_votes', pt.up_votes,
+                'down_votes', pt.down_votes,
+                'tag_name', t.name
+              )
+            ) FILTER (WHERE t.id IS NOT NULL),
+          '[]'
+          ) AS tags
+        FROM "Places" AS p
+        LEFT JOIN "PlaceTags" AS pt ON pt.place_id = p.id
+        LEFT JOIN "Tags" AS t ON t.id = pt.tag_id AND t.name = ${tag}
+        WHERE p.country_code = ${countryCode} AND ST_DWithin(
+          p.geom::geography,
+          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography,
+          50000
+        ) AND t.name = ${tag}
+        GROUP BY p.id
+        ORDER BY score DESC
+        OFFSET ${(page - 1) * limit}
+        LIMIT ${limit};
+      `;
+      }
     } else {
       throw new ApiError("Invalid Fetch type.", 400);
     }
+
+    if (!places) {
+      throw new ApiError("Unkown Error", 400);
+    }
+
+    console.log(places);
+
+    // Success Response
+    return NextResponse.json<ApiResponse<PlacesResponse[]>>({
+      success: true,
+      data: places,
+      message: "Successfully fetched places.",
+    });
   } catch (error) {
     // Message
     const message =
