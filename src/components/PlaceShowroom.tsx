@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { useLocationProvider } from '@/providers/LocationProvider';
 import { useGlobalProvider } from '@/providers/GlobalProvider';
 // Types
-import { ApiResponse } from '@/types';
+import { ApiResponse, PlacesResponse } from '@/types';
 
 // Skeleton Profile Loader 
 const PlaceSkeletonLoader = () => {
@@ -60,7 +60,7 @@ function PlaceShowroom() {
     // Loader
     const [isLoading, setIsLoading] = useState<boolean>(false);
     // Places
-    const [places, setPlaces] = useState<null>(null);
+    const [places, setPlaces] = useState<PlacesResponse[] | null>(null);
 
     // generate fetch tag url
     const getFetchPlaceUrl = (): string | null => {
@@ -92,7 +92,7 @@ function PlaceShowroom() {
 
             try {
                 const res = await fetch(`${url}`);
-                const data = (await res.json()) as ApiResponse<null | never>;
+                const data = (await res.json()) as ApiResponse<PlacesResponse[] | never>;
 
                 if (!data.success) {
                     throw new Error(data.message);
@@ -117,6 +117,14 @@ function PlaceShowroom() {
             {/* Loader */}
             {isLoading && <PlaceSkeletonLoader />}
 
+            {/* Place Card */}
+            {places && places.length > 0 && (
+                places.map((place, idx) => (
+                    <div key={idx}>
+                        {place.name}
+                    </div>
+                ))
+            )}
         </section>
     )
 }

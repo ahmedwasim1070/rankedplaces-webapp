@@ -339,11 +339,9 @@ export async function GET(request: NextRequest) {
       throw new ApiError("Invalid Fetch type.", 400);
     }
 
-    if (!places) {
-      throw new ApiError("Unkown Error", 400);
+    if (!places || places.length <= 0) {
+      throw new ApiError("No places found with those params.", 404);
     }
-
-    console.log(places);
 
     // Success Response
     return NextResponse.json<ApiResponse<PlacesResponse[]>>({

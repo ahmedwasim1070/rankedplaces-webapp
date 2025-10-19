@@ -33,6 +33,7 @@ const GlobalContext = createContext<ProviderProps | undefined>(undefined);
 // 
 export const GlobalProvider = ({ children }: Props) => {
     // Provider
+    // Location
     const { isLocationProviderLoading } = useLocationProvider();
     // Path
     const pathname = usePathname();
