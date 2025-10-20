@@ -6,11 +6,47 @@ import { ApiError } from "@/lib/error/ApiError";
 import { isValidTags, isValidLatnLng } from "@/lib/api/validators";
 import { prisma } from "@/lib/prisma/prisma";
 import { findPlaceInDb } from "@/lib/api/helper/findPlaceByIdInDb";
+import cloudinary from "@/lib/cloudinary";
 // Utils
 import { sanitizeString, getAddressComponent } from "@/utils";
 // Types
 import { AddPlaceForm, ApiResponse } from "@/types";
 import { Tags } from "@/generated/prisma";
+
+// Upload To Cloudinary
+async function uploadImageToCloudinary(
+  imageUrl: string,
+  publicId: string
+): Promise<string | null> {
+  try {
+    const result = await cloudinary.uploader.upload(imageUrl, {
+      public_id: publicId,
+      folder: "business-profiles",
+      transformation: [
+        {
+          width: 1024,
+          height: 1024,
+          crop: "fill",
+          quality: "auto",
+          fetch_format: "webp",
+        },
+      ],
+      overwrite: false,
+      unique_filename: false,
+      use_filename: true,
+    });
+
+    return result.secure_url;
+  } catch (error) {
+    console.error("Failed to upload image to Cloudinary:", error);
+    return null;
+  }
+}
+
+// Generate Photo Url
+function generateGooglePhotoUrl(photoReference: string): string {
+  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1024&photoreference=${photoReference}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
+}
 
 //
 export async function POST(request: NextRequest) {
@@ -76,6 +112,10 @@ export async function POST(request: NextRequest) {
     const sanitizedPlace = {
       place_id: sanitizeString(placeByGoogle.place_id, 100),
       name: sanitizeString(placeByGoogle.name, 255),
+      pfp: sanitizeString(
+        placeByGoogle.photos ? placeByGoogle.photos[0].photo_reference : "",
+        50
+      ),
       formatted_address: sanitizeString(placeByGoogle.formatted_address, 500),
       lat: placeByGoogle.geometry.location.lat,
       lng: placeByGoogle.geometry.location.lng,
@@ -98,6 +138,25 @@ export async function POST(request: NextRequest) {
           ? placeByGoogle.user_ratings_total
           : 0,
     };
+
+    // Upload Google Place PFP to Cloudinary
+    const gMapPfpUrl =
+      sanitizedPlace.pfp.length > 1
+        ? generateGooglePhotoUrl(sanitizedPlace.pfp)
+        : null;
+    let cloudinaryImageUrl: string | null = null;
+    if (gMapPfpUrl) {
+      try {
+        const publicId = `business_${sanitizedPlace.place_id}_${Date.now()}`;
+
+        cloudinaryImageUrl = await uploadImageToCloudinary(
+          gMapPfpUrl,
+          publicId
+        );
+      } catch (cloudinaryError) {
+        console.error("Cloudinary Image upload failed.");
+      }
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const placeInDb = await findPlaceInDb(
@@ -130,6 +189,7 @@ export async function POST(request: NextRequest) {
           data: {
             place_id: sanitizedPlace.place_id,
             name: sanitizedPlace.name,
+            pfp: cloudinaryImageUrl,
             address: sanitizedPlace.formatted_address,
             lat: sanitizedPlace.lat,
             lng: sanitizedPlace.lng,
@@ -152,6 +212,7 @@ export async function POST(request: NextRequest) {
           data: {
             place_id: sanitizedPlace.place_id,
             name: sanitizedPlace.name,
+            pfp: cloudinaryImageUrl,
             category: sanitizedPlace.category,
             address: sanitizedPlace.formatted_address,
             city: cityComponent?.long_name

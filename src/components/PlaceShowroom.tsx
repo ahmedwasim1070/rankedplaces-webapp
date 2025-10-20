@@ -3,11 +3,13 @@
 // Imports
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react';
+import { CldImage } from 'next-cloudinary';
 // Providers
 import { useLocationProvider } from '@/providers/LocationProvider';
 import { useGlobalProvider } from '@/providers/GlobalProvider';
 // Types
 import { ApiResponse, PlacesResponse } from '@/types';
+import { ArrowBigDown, ArrowBigUp, Globe, MapPin, Phone, Star } from 'lucide-react';
 
 // Skeleton Profile Loader 
 const PlaceSkeletonLoader = () => {
@@ -120,8 +122,69 @@ function PlaceShowroom() {
             {/* Place Card */}
             {places && places.length > 0 && (
                 places.map((place, idx) => (
-                    <div key={idx}>
-                        {place.name}
+                    <div key={idx} className='border-2 border-primary bg-primary/10 rounded-lg p-2 flex flex-col items-center justify-center gap-y-4 '>
+
+                        {/* Pfp */}
+                        {place.pfp && (
+                            <CldImage
+                                className="w-full rounded-t-lg font-semibold object-cover"
+                                src={place.pfp}
+                                width={100}
+                                height={48}
+                                alt={place.name}
+                                crop="fill"
+                                gravity="auto"
+                            />
+                        )}
+
+                        {/* Name */}
+                        <p className='font-semibold text-secondary text-xl'>{place.name}</p>
+
+                        {/* Location */}
+                        <div className='flex flex-row gap-x-1'>
+                            <MapPin className='w-4 h-4 text-secondary' />
+                            <p className='font-semibold text-primary text-sm'>{place.city}</p>
+                            <p className='font-semibold text-primary text-sm'>,</p>
+                            <p className='font-semibold text-secondary text-sm'>{place.country}</p>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className='min-w-full flex flex-row items-center justify-between px-4'>
+                            <div className='flex flex-row items-center gap-x-1'>
+                                <Phone className='w-4 h-4 text-secondary' />
+                                <a href={`tel:${place.phone}`} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>{place.phone}</a>
+                            </div>
+
+                            <div className='flex flex-row items-center gap-x-1'>
+                                <Globe className='w-4 h-4 text-secondary' />
+                                <a href={place?.website || ''} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>{place.website ? place.website : 'Website'}</a>
+                            </div>
+                        </div>
+
+                        {/* Votes */}
+                        <div className='flex flex-row items-center'>
+                            <button className='bg-secondary rounded-full rounded-r-lg p-2.5 cursor-pointer flex items-center gap-x-2'>
+                                <ArrowBigUp className='w-4 h-4 fill-white text-white' />
+                                <p className='text-sm text-white'>{place.total_up_votes}</p>
+                            </button>
+
+                            <button className='bg-primary rounded-full rounded-l-lg p-2.5 cursor-pointer flex items-center gap-x-2'>
+                                <ArrowBigDown className='w-4 h-4 fill-white text-white' />
+                                <p className='text-sm text-white'>{place.total_down_votes}</p>
+                            </button>
+                        </div>
+
+                        {/* Review Info */}
+                        <div className='flex flex-row items-center gap-x-1'>
+                            <Star className='w-4 h-4 fill-yellow-300 text-gray-500' />
+                            <p className='font-semibold text-gray-500 cursor-pointer'>{place.review_value}</p>
+                            <p className='text-sm font-semibold text-gray-500 cursor-pointer'>({place.review_amount})</p>
+                        </div>
+
+
+                        {/*  */}
+                        <a className='underline text-primary hover:text-secondary cursor-pointer text-sm' href={place.maps_url || 'https://mapgs.google.com'}>Google Map</a>
+
                     </div>
                 ))
             )}
