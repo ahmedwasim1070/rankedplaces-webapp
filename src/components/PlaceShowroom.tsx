@@ -11,6 +11,11 @@ import { useGlobalProvider } from '@/providers/GlobalProvider';
 import { ApiResponse, PlacesResponse } from '@/types';
 import { ArrowBigDown, ArrowBigUp, Globe, MapPin, Phone, Star } from 'lucide-react';
 
+// Interface
+interface PlaceCardProps {
+    place: PlacesResponse;
+};
+
 // Skeleton Profile Loader 
 const PlaceSkeletonLoader = () => {
     return (
@@ -49,6 +54,145 @@ const PlaceSkeletonLoader = () => {
             }
         </>
     )
+}
+
+// 
+const PlaceCard = ({ place }: PlaceCardProps) => {
+    // Provider
+    // Location
+    const { urlParams, setParams } = useLocationProvider();
+    // States
+    // Up Votes
+    const [upVotes, setUpVotes] = useState<number | null>(null);
+    // Down Votes
+    const [downVotes, setDownVotes] = useState<number | null>(null);
+
+    // Handle Votes
+    const handleVote = async (direction: string) => {
+        if (!upVotes || !downVotes) return;
+
+        if (direction === 'UP') {
+            setUpVotes(upVotes + 1);
+        } else if (direction === 'DOWN') {
+            setDownVotes(downVotes - 1);
+        } else {
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/add/vote');
+            const data = (await res.json()) as ApiResponse<null | never>;
+        } catch (err) {
+            // Message
+            const msg = err instanceof Error ? err.message : "Unexpected error.";
+            // 
+            console.error("Error in handleVote in PlaceCard in PlacesShowroom.", "Message : ", msg, "Error : ", err);
+
+            // 
+            if (direction === 'UP') {
+                setUpVotes(upVotes - 1);
+            } else if (direction === 'DOWN') {
+                setDownVotes(downVotes + 1);
+            }
+        }
+
+    }
+
+    // Effects
+    useEffect(() => {
+        const fetchVotes = () => {
+            if (upVotes && downVotes) return;
+
+            if (urlParams.tag === 'All') {
+                setUpVotes(place.total_up_votes);
+                setDownVotes(place.total_down_votes);
+            } else {
+                setUpVotes(place.tags[0].up_votes);
+                setDownVotes(place.tags[0].down_votes);
+            }
+        };
+
+        fetchVotes();
+    }, [place])
+
+    return (
+        <div className='border-2 border-primary bg-primary/10 rounded-lg p-2 flex flex-col items-center justify-center gap-y-2 overflow-x-hidden'>
+
+            {/* Pfp */}
+            {place.pfp && (
+                <CldImage
+                    className="w-full rounded-t-lg font-semibold object-cover"
+                    src={place.pfp}
+                    width={100}
+                    height={48}
+                    alt={place.name}
+                    crop="fill"
+                    gravity="auto"
+                />
+            )}
+
+            {/* Name */}
+            <p className='font-semibold text-secondary text-xl'>{place.name}</p>
+
+            {/*  */}
+            <p className='text-primary text-sm font-semibold'>{place.category}</p>
+
+            {/* Location */}
+            <div className='flex flex-row gap-x-1'>
+                <MapPin className='w-4 h-4 text-secondary' />
+                <p className='font-semibold text-primary text-sm'>{place.city}</p>
+                <p className='font-semibold text-primary text-sm'>,</p>
+                <p className='font-semibold text-secondary text-sm'>{place.country}</p>
+            </div>
+
+            {/* Contact Info */}
+            <div className='min-w-full flex flex-row items-center justify-between px-4 my-2'>
+                <div className='flex flex-row items-center gap-x-1'>
+                    <Phone className='w-4 h-4 text-secondary' />
+                    <a href={`tel:${place.phone}`} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>{place.phone}</a>
+                </div>
+
+                <div className='flex flex-row items-center gap-x-1'>
+                    <Globe className='w-4 h-4 text-secondary' />
+                    <a href={place?.website || ''} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>{place.website ? place.website : 'Website'}</a>
+                </div>
+            </div>
+
+            {/*  */}
+            <div className='min-w-full flex flex-row items-center overflow-x-scroll scrollbar-hidden gap-x-1 '>
+                {place.tags.map((tag, idx) => (
+                    <button onClick={() => { setParams(['tag'], [tag.tag_name]) }} className='bg-primary border border-primary rounded-full py-1 px-2 text-[12px] font-semibold text-white hover:bg-transparent hover:text-primary cursor-pointer transition-colors text-nowrap' key={idx}>
+                        {tag.tag_name}
+                    </button>
+                ))}
+            </div>
+
+            {/* Votes */}
+            <div className='flex flex-row items-center'>
+                <button className='bg-secondary border border-secondary rounded-full rounded-r-lg p-2.5 cursor-pointer flex items-center gap-x-2 hover:bg-transparent transition-colors group'>
+                    <ArrowBigUp className='w-4 h-4 fill-white text-white group-hover:fill-secondary group-hover:text-secondary' />
+                    <p className='text-sm text-white group-hover:text-secondary'>{upVotes}</p>
+                </button>
+
+                <button className='bg-primary border border-primary rounded-full rounded-l-lg p-2.5 cursor-pointer flex items-center gap-x-2 hover:bg-transparent transition-colors group'>
+                    <ArrowBigDown className='w-4 h-4 fill-white text-white group-hover:fill-primary group-hover:text-primary' />
+                    <p className='text-sm text-white group-hover:text-primary'>{downVotes}</p>
+                </button>
+            </div>
+
+            {/* Review Info */}
+            <div className='flex flex-row items-center gap-x-1'>
+                <Star className='w-4 h-4 fill-yellow-300 text-gray-500' />
+                <p className='font-semibold text-gray-500 '>{place.review_value}</p>
+                <p className='text-sm font-semibold text-gray-500 '>({place.review_amount})</p>
+            </div>
+
+
+            {/*  */}
+            <a className='underline text-primary hover:text-secondary cursor-pointer text-sm' href={place.maps_url || 'https://mapgs.google.com'}>Google Map</a>
+
+        </div>
+    );
 }
 
 // 
@@ -113,81 +257,22 @@ function PlaceShowroom() {
 
         fetchPlaces();
     }, [])
+
     return (
-        <section className='min-w-full px-4 py-2 grid grid-cols-3 md:grid-cols-3 xxs:grid-cols-1 gap-y-4 gap-x-2'>
+        <section className='min-w-full px-4 py-2 grid grid-cols-3 md:grid-cols-3 xxs:grid-cols-1 gap-y-4 gap-x-2 '>
 
             {/* Loader */}
             {isLoading && <PlaceSkeletonLoader />}
 
-            {/* Place Card */}
-            {places && places.length > 0 && (
-                places.map((place, idx) => (
-                    <div key={idx} className='border-2 border-primary bg-primary/10 rounded-lg p-2 flex flex-col items-center justify-center gap-y-4 '>
+            {/*  */}
+            {places && places.length > 0 &&
+                (
+                    places.map((place, idx) => (
+                        <PlaceCard place={place} key={idx} />
+                    ))
+                )
+            }
 
-                        {/* Pfp */}
-                        {place.pfp && (
-                            <CldImage
-                                className="w-full rounded-t-lg font-semibold object-cover"
-                                src={place.pfp}
-                                width={100}
-                                height={48}
-                                alt={place.name}
-                                crop="fill"
-                                gravity="auto"
-                            />
-                        )}
-
-                        {/* Name */}
-                        <p className='font-semibold text-secondary text-xl'>{place.name}</p>
-
-                        {/* Location */}
-                        <div className='flex flex-row gap-x-1'>
-                            <MapPin className='w-4 h-4 text-secondary' />
-                            <p className='font-semibold text-primary text-sm'>{place.city}</p>
-                            <p className='font-semibold text-primary text-sm'>,</p>
-                            <p className='font-semibold text-secondary text-sm'>{place.country}</p>
-                        </div>
-
-                        {/* Contact Info */}
-                        <div className='min-w-full flex flex-row items-center justify-between px-4'>
-                            <div className='flex flex-row items-center gap-x-1'>
-                                <Phone className='w-4 h-4 text-secondary' />
-                                <a href={`tel:${place.phone}`} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>{place.phone}</a>
-                            </div>
-
-                            <div className='flex flex-row items-center gap-x-1'>
-                                <Globe className='w-4 h-4 text-secondary' />
-                                <a href={place?.website || ''} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>{place.website ? place.website : 'Website'}</a>
-                            </div>
-                        </div>
-
-                        {/* Votes */}
-                        <div className='flex flex-row items-center'>
-                            <button className='bg-secondary rounded-full rounded-r-lg p-2.5 cursor-pointer flex items-center gap-x-2'>
-                                <ArrowBigUp className='w-4 h-4 fill-white text-white' />
-                                <p className='text-sm text-white'>{place.total_up_votes}</p>
-                            </button>
-
-                            <button className='bg-primary rounded-full rounded-l-lg p-2.5 cursor-pointer flex items-center gap-x-2'>
-                                <ArrowBigDown className='w-4 h-4 fill-white text-white' />
-                                <p className='text-sm text-white'>{place.total_down_votes}</p>
-                            </button>
-                        </div>
-
-                        {/* Review Info */}
-                        <div className='flex flex-row items-center gap-x-1'>
-                            <Star className='w-4 h-4 fill-yellow-300 text-gray-500' />
-                            <p className='font-semibold text-gray-500 cursor-pointer'>{place.review_value}</p>
-                            <p className='text-sm font-semibold text-gray-500 cursor-pointer'>({place.review_amount})</p>
-                        </div>
-
-
-                        {/*  */}
-                        <a className='underline text-primary hover:text-secondary cursor-pointer text-sm' href={place.maps_url || 'https://mapgs.google.com'}>Google Map</a>
-
-                    </div>
-                ))
-            )}
         </section>
     )
 }

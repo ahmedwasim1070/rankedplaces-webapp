@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
           p.total_up_votes,
           p.total_down_votes,
           p.added_by_id,
-          (p.total_up_votes - p.total_down_votes) AS score,
+          COALESCE(SUM(pt.up_votes) - SUM(pt.down_votes), 0) AS score,
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
@@ -116,6 +116,12 @@ export async function GET(request: NextRequest) {
         OFFSET ${(page - 1) * limit}
         LIMIT ${limit};
       `;
+
+        places = JSON.parse(
+          JSON.stringify(places, (_, value) =>
+            typeof value === "bigint" ? Number(value) : value
+          )
+        );
       }
     } else if (fetchBy === "country") {
       const countryCode = searchParams.get("country-code");
@@ -196,7 +202,7 @@ export async function GET(request: NextRequest) {
           p.total_up_votes,
           p.total_down_votes,
           p.added_by_id,
-          (p.total_up_votes - p.total_down_votes) AS score,
+          COALESCE(SUM(pt.up_votes) - SUM(pt.down_votes), 0) AS score,
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
@@ -218,6 +224,12 @@ export async function GET(request: NextRequest) {
         OFFSET ${(page - 1) * limit}
         LIMIT ${limit};
       `;
+
+        places = JSON.parse(
+          JSON.stringify(places, (_, value) =>
+            typeof value === "bigint" ? Number(value) : value
+          )
+        );
       }
     } else if (fetchBy === "city") {
       const countryCode = searchParams.get("country-code");
@@ -308,7 +320,7 @@ export async function GET(request: NextRequest) {
           p.total_up_votes,
           p.total_down_votes,
           p.added_by_id,
-          (p.total_up_votes - p.total_down_votes) AS score,
+          COALESCE(SUM(pt.up_votes) - SUM(pt.down_votes), 0) AS score,
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
@@ -335,6 +347,12 @@ export async function GET(request: NextRequest) {
         LIMIT ${limit};
       `;
       }
+
+      places = JSON.parse(
+        JSON.stringify(places, (_, value) =>
+          typeof value === "bigint" ? Number(value) : value
+        )
+      );
     } else {
       throw new ApiError("Invalid Fetch type.", 400);
     }
