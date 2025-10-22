@@ -9,6 +9,7 @@ import { ApiResponse } from "./types";
 const protectedRoutes = [
   "/api/add/tag",
   "/api/add/place",
+  "/api/add/vote",
   "/api/fetch/place-details",
   "/api/fetch/place-suggestion",
   "/api/fetch/tags-suggestion",

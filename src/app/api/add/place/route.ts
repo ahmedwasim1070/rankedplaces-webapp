@@ -11,7 +11,7 @@ import cloudinary from "@/lib/cloudinary";
 import { sanitizeString, getAddressComponent } from "@/utils";
 // Types
 import { AddPlaceForm, ApiResponse } from "@/types";
-import { Tags } from "@/generated/prisma";
+import { Places, Tags } from "@/generated/prisma";
 
 // Upload To Cloudinary
 async function uploadImageToCloudinary(
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result: Places = await prisma.$transaction(async (tx) => {
       const placeInDb = await findPlaceInDb(
         tx,
         sanitizedPlace.place_id,
@@ -250,10 +250,10 @@ export async function POST(request: NextRequest) {
       throw new ApiError("Failed to create place.", 500);
     }
 
-    return NextResponse.json<ApiResponse<null>>(
+    return NextResponse.json<ApiResponse<Places>>(
       {
         success: true,
-        data: null,
+        data: result,
         message: "Added place with provided tags successfully.",
       },
       {

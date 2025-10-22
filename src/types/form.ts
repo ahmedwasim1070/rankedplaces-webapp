@@ -16,3 +16,9 @@ export type AddPlaceForm = {
   placeByGoogle: PlaceDetailsByGoogle;
   userAddedTags: string[];
 };
+// AddVote Form Data
+export type AddVoteForm = {
+  placeId: string;
+  tag: string;
+  voteType: "UP" | "DOWN";
+};

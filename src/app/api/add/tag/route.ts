@@ -26,12 +26,12 @@ export async function POST(request: NextRequest) {
     const body: TagFormData = await request.json();
     const { phrase, keyword } = body;
 
-    const errorInData = isValidTag(phrase, keyword);
-    if (errorInData) {
-      throw new ApiError(errorInData, 400);
+    const errorInTag = isValidTag(phrase, keyword);
+    if (errorInTag) {
+      throw new ApiError(errorInTag, 400);
     }
 
-    const sanitizeTag = sanitizeString(phrase + " " + keyword);
+    const sanitizeTag = sanitizeString(phrase + " " + keyword, 30);
 
     const user = await prisma.users.findUnique({
       where: {

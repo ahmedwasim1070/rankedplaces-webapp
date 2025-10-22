@@ -8,7 +8,7 @@ import { CldImage } from 'next-cloudinary';
 import { useLocationProvider } from '@/providers/LocationProvider';
 import { useGlobalProvider } from '@/providers/GlobalProvider';
 // Types
-import { ApiResponse, PlacesResponse } from '@/types';
+import { AddVoteForm, AddVoteResponse, ApiResponse, PlacesResponse } from '@/types';
 import { ArrowBigDown, ArrowBigUp, Globe, MapPin, Phone, Star } from 'lucide-react';
 
 // Interface
@@ -68,20 +68,34 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
     const [downVotes, setDownVotes] = useState<number | null>(null);
 
     // Handle Votes
-    const handleVote = async (direction: string) => {
+    const handleVote = async (direction: 'UP' | 'DOWN') => {
         if (!upVotes || !downVotes) return;
 
         if (direction === 'UP') {
             setUpVotes(upVotes + 1);
         } else if (direction === 'DOWN') {
             setDownVotes(downVotes - 1);
-        } else {
-            return;
         }
 
         try {
-            const res = await fetch('/api/add/vote');
-            const data = (await res.json()) as ApiResponse<null | never>;
+            const formData: AddVoteForm = {
+                placeId: place.place_id,
+                tag: urlParams.tag,
+                voteType: direction,
+            }
+            const res = await fetch('/api/add/vote', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(formData),
+            });
+            const data = (await res.json()) as ApiResponse<AddVoteResponse | never>;
+
+            if (!data.success) {
+                throw new Error(data.message);
+            }
+
         } catch (err) {
             // Message
             const msg = err instanceof Error ? err.message : "Unexpected error.";
@@ -169,12 +183,12 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
 
             {/* Votes */}
             <div className='flex flex-row items-center'>
-                <button className='bg-secondary border border-secondary rounded-full rounded-r-lg p-2.5 cursor-pointer flex items-center gap-x-2 hover:bg-transparent transition-colors group'>
+                <button onClick={() => handleVote('UP')} className='bg-secondary border border-secondary rounded-full rounded-r-lg p-2.5 cursor-pointer flex items-center gap-x-2 hover:bg-transparent transition-colors group'>
                     <ArrowBigUp className='w-4 h-4 fill-white text-white group-hover:fill-secondary group-hover:text-secondary' />
                     <p className='text-sm text-white group-hover:text-secondary'>{upVotes}</p>
                 </button>
 
-                <button className='bg-primary border border-primary rounded-full rounded-l-lg p-2.5 cursor-pointer flex items-center gap-x-2 hover:bg-transparent transition-colors group'>
+                <button onClick={() => handleVote('DOWN')} className='bg-primary border border-primary rounded-full rounded-l-lg p-2.5 cursor-pointer flex items-center gap-x-2 hover:bg-transparent transition-colors group'>
                     <ArrowBigDown className='w-4 h-4 fill-white text-white group-hover:fill-primary group-hover:text-primary' />
                     <p className='text-sm text-white group-hover:text-primary'>{downVotes}</p>
                 </button>
