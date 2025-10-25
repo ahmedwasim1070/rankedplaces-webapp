@@ -10,6 +10,7 @@ const protectedRoutes = [
   "/api/add/tag",
   "/api/add/place",
   "/api/add/vote",
+  "/api/fetch/user-data",
   "/api/fetch/place-details",
   "/api/fetch/place-suggestion",
   "/api/fetch/tags-suggestion",

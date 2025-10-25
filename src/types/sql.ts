@@ -21,6 +21,7 @@ export type PlacesResponse = {
   added_by_id: string | null;
   score: number;
   tags: {
+    place_tag_id: number;
     place_id: number;
     tag_id: number;
     up_votes: number;

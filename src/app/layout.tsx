@@ -4,13 +4,13 @@ import { cookies } from "next/headers";
 // CSS
 import "./globals.css";
 // Providers
-import { GlobalProvider } from "@/providers/GlobalProvider";
 import { LocationProvider } from "@/providers/LocationProvider";
 // Components
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 // Types
 import { LocationCookieData } from "@/types";
+import { SessionWrapper } from "@/providers/SessionWrapper";
 
 // Metadata
 export const metadata: Metadata = {
@@ -50,7 +50,7 @@ export default async function RootLayout({
         <LocationProvider initialLocation={locationCookieData}>
 
           {/* All children wrapped inside GlobalProvider all the global things goes here */}
-          <GlobalProvider>
+          <SessionWrapper>
             {/* Header */}
             <Header />
 
@@ -58,7 +58,7 @@ export default async function RootLayout({
 
             {/* Footer */}
             <Footer />
-          </GlobalProvider>
+          </SessionWrapper>
 
         </LocationProvider>
       </body>

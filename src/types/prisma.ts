@@ -51,10 +51,15 @@ export type cityFetchTagsResponse = Prisma.TagsGetPayload<{
     };
   };
 }>;
-
 // Response from /add/vote
 export type AddVoteResponse = {
   updated: Prisma.PlaceTagsGetPayload<{}>;
   tag: string;
   place: string;
 };
+// Response from /fetch/user-data
+export type FetchUserData = Prisma.UsersGetPayload<{
+  include: {
+    votes: true;
+  };
+}>;

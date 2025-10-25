@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
+                'place_tag_id', pt.id,
                 'place_id', pt.place_id,
                 'tag_id', pt.tag_id,
                 'up_votes', pt.up_votes,
@@ -98,6 +99,7 @@ export async function GET(request: NextRequest) {
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
+                'place_tag_id', pt.id,
                 'place_id', pt.place_id,
                 'tag_id', pt.tag_id,
                 'up_votes', pt.up_votes,
@@ -162,6 +164,7 @@ export async function GET(request: NextRequest) {
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
+                'place_tag_id', pt.id,
                 'place_id', pt.place_id,
                 'tag_id', pt.tag_id,
                 'up_votes', pt.up_votes,
@@ -206,6 +209,7 @@ export async function GET(request: NextRequest) {
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
+                'place_tag_id', pt.id,
                 'place_id', pt.place_id,
                 'tag_id', pt.tag_id,
                 'up_votes', pt.up_votes,
@@ -276,6 +280,7 @@ export async function GET(request: NextRequest) {
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
+                'place_tag_id', pt.id,
                 'place_id', pt.place_id,
                 'tag_id', pt.tag_id,
                 'up_votes', pt.up_votes,
@@ -324,6 +329,7 @@ export async function GET(request: NextRequest) {
           COALESCE(
             json_agg(
               DISTINCT jsonb_build_object(
+                'place_tag_id', pt.id,
                 'place_id', pt.place_id,
                 'tag_id', pt.tag_id,
                 'up_votes', pt.up_votes,

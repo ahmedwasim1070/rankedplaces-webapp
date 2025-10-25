@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/error/ApiError";
 import { AddVoteForm, AddVoteResponse, ApiResponse } from "@/types";
 import { sanitizeString } from "@/utils";
 import { prisma } from "@/lib/prisma/prisma";
+import { PlaceTags } from "@/generated/prisma";
 
 //
 export async function POST(request: NextRequest) {
@@ -32,15 +33,12 @@ export async function POST(request: NextRequest) {
     const sanitizePlaceId = sanitizeString(placeId, 50);
 
     const result: AddVoteResponse = await prisma.$transaction(async (tx) => {
-      const userNDataInDb = await tx.users.findUnique({
+      const userInDb = await tx.users.findUnique({
         where: {
           unique_id: uniqueId,
         },
-        include: {
-          votes: true,
-        },
       });
-      if (!userNDataInDb) throw new ApiError("User not found ", 404);
+      if (!userInDb) throw new ApiError("User not found ", 404);
 
       const tagInDb = await tx.tags.findUnique({
         where: {
@@ -69,11 +67,12 @@ export async function POST(request: NextRequest) {
       const exisistingVote = await tx.votes.findUnique({
         where: {
           voted_by_id_place_tag_id: {
-            voted_by_id: userNDataInDb.id,
+            voted_by_id: userInDb.id,
             place_tag_id: placeTagInDb.id,
           },
         },
       });
+      let updated: PlaceTags | null = null;
       if (exisistingVote) {
         // If vote is same undo
         if (exisistingVote.vote_type === voteType) {
@@ -81,31 +80,42 @@ export async function POST(request: NextRequest) {
             where: {
               voted_by_id_place_tag_id: {
                 place_tag_id: placeTagInDb.id,
-                voted_by_id: userNDataInDb.id,
+                voted_by_id: userInDb.id,
               },
             },
           });
 
-          const updatePayload =
+          const updateTagPayload =
             voteType === "UP"
               ? { up_votes: { decrement: 1 } }
               : { down_votes: { decrement: 1 } };
-          const updated = await tx.placeTags.update({
+          updated = await tx.placeTags.update({
             where: {
               place_id_tag_id: {
                 place_id: placeInDb.id,
                 tag_id: tagInDb.id,
               },
             },
-            data: updatePayload,
+            data: updateTagPayload,
+          });
+
+          const updatedPlacePayload =
+            voteType === "UP"
+              ? { total_up_votes: { decrement: 1 } }
+              : { total_down_votes: { decrement: 1 } };
+          await tx.places.update({
+            where: {
+              id: placeInDb.id,
+            },
+            data: updatedPlacePayload,
           });
           // If vote is different change
-        } else if (exisistingVote.vote_type !== voteType) {
+        } else {
           await tx.votes.update({
             where: {
               voted_by_id_place_tag_id: {
                 place_tag_id: placeTagInDb.id,
-                voted_by_id: userNDataInDb.id,
+                voted_by_id: userInDb.id,
               },
             },
             data: {
@@ -113,44 +123,75 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          const updatePayload =
+          const updateTagPayload =
             voteType === "UP"
-              ? { up_votes: { increment: 1 }, down_votes: {} }
-              : { down_votes: { increment: 1 } };
-          const updated = await tx.placeTags.update({
+              ? { up_votes: { increment: 1 }, down_votes: { decrement: 1 } }
+              : { up_votes: { decrement: 1 }, down_votes: { increment: 1 } };
+          updated = await tx.placeTags.update({
             where: {
               place_id_tag_id: {
                 place_id: placeInDb.id,
                 tag_id: tagInDb.id,
               },
             },
-            data: updatePayload,
+            data: updateTagPayload,
+          });
+
+          const updatedPlacePayload =
+            voteType === "UP"
+              ? {
+                  total_up_votes: { increment: 1 },
+                  total_down_votes: { decrement: 1 },
+                }
+              : {
+                  total_up_votes: { decrement: 1 },
+                  total_down_votes: { increment: 1 },
+                };
+          await tx.places.update({
+            where: {
+              id: placeInDb.id,
+            },
+            data: updatedPlacePayload,
           });
         }
+
         // If vote does not exists create
       } else {
         await tx.votes.create({
           data: {
-            voted_by_id: userNDataInDb.id,
+            voted_by_id: userInDb.id,
             place_tag_id: placeTagInDb.id,
             vote_type: voteType,
           },
         });
 
-        const updatePayload =
+        const updateTagPayload =
           voteType === "UP"
             ? { up_votes: { increment: 1 } }
             : { down_votes: { increment: 1 } };
-        const updated = await tx.placeTags.update({
+        updated = await tx.placeTags.update({
           where: {
             place_id_tag_id: {
               place_id: placeInDb.id,
               tag_id: tagInDb.id,
             },
           },
-          data: updatePayload,
+          data: updateTagPayload,
+        });
+
+        const updatedPlacePayload =
+          voteType === "UP"
+            ? { total_up_votes: { increment: 1 } }
+            : { total_down_votes: { increment: 1 } };
+        await tx.places.update({
+          where: {
+            id: placeInDb.id,
+          },
+          data: updatedPlacePayload,
         });
       }
+
+      if (!updated) throw new ApiError("Failed to update fields", 400);
 
       return { updated, tag: tagInDb.name, place: placeInDb.name };
     });

@@ -61,21 +61,52 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
     // Provider
     // Location
     const { urlParams, setParams } = useLocationProvider();
+    // Global
+    const { userData } = useGlobalProvider();
     // States
     // Up Votes
     const [upVotes, setUpVotes] = useState<number | null>(null);
     // Down Votes
     const [downVotes, setDownVotes] = useState<number | null>(null);
 
-    // Handle Votes
-    const handleVote = async (direction: 'UP' | 'DOWN') => {
+    // Undo Vote
+    const undoVote = (direction: 'UP' | 'DOWN') => {
         if (!upVotes || !downVotes) return;
 
+        // 
         if (direction === 'UP') {
-            setUpVotes(upVotes + 1);
+            setUpVotes(upVotes - 1);
         } else if (direction === 'DOWN') {
             setDownVotes(downVotes - 1);
         }
+    }
+    // registerVote
+    const vote = (direction: 'UP' | 'DOWN'): boolean => {
+        if (!upVotes || !downVotes) return false;
+
+        let isElgibleToVote: boolean = true;
+        if (urlParams.tag === 'all') isElgibleToVote = false;
+
+        const userVotesData = userData?.votes;
+        const placeTagId = place.tags[0].place_tag_id;
+        userVotesData?.forEach((vote) => {
+            if (vote.place_tag_id === placeTagId) {
+                isElgibleToVote = false;
+            }
+        })
+
+        if (isElgibleToVote) {
+            if (direction === 'UP') setUpVotes(upVotes + 1);
+            else setUpVotes(upVotes + 1);
+        }
+
+        return isElgibleToVote;
+    }
+    // Handle Votes
+    const handleVote = async (direction: 'UP' | 'DOWN') => {
+        // Dose vote after check's on client side 
+        const isVoted = vote(direction);
+        if (!isVoted) return;
 
         try {
             const formData: AddVoteForm = {
@@ -95,19 +126,13 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
             if (!data.success) {
                 throw new Error(data.message);
             }
-
         } catch (err) {
             // Message
             const msg = err instanceof Error ? err.message : "Unexpected error.";
             // 
             console.error("Error in handleVote in PlaceCard in PlacesShowroom.", "Message : ", msg, "Error : ", err);
-
             // 
-            if (direction === 'UP') {
-                setUpVotes(upVotes - 1);
-            } else if (direction === 'DOWN') {
-                setDownVotes(downVotes + 1);
-            }
+            undoVote(direction);
         }
 
     }
