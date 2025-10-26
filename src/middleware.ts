@@ -20,8 +20,12 @@ const protectedRoutes = [
 //
 export async function middleware(request: NextRequest) {
   //
-  if (!process.env.NEXTAUTH_SECRET) {
-    console.error("NEXTAUTH_SECRET Environment Variable is not Set.");
+  if (
+    !process.env.NODE_ENV ||
+    (process.env.NODE_ENV !== "development" &&
+      process.env.NODE_ENV !== "production")
+  ) {
+    console.error("NODE_ENV Environment Variable is not Set or Invalid.");
     return NextResponse.json<ApiResponse<never>>(
       { success: false, message: "Server Configuration Error." },
       { status: 500 }
@@ -35,6 +39,15 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
   if (isProtectedRoute) {
+    //
+    if (!process.env.NEXTAUTH_SECRET) {
+      console.error("NEXTAUTH_SECRET Environment Variable is not Set.");
+      return NextResponse.json<ApiResponse<never>>(
+        { success: false, message: "Server Configuration Error." },
+        { status: 500 }
+      );
+    }
+
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,

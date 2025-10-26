@@ -4,12 +4,13 @@
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
+import toast from 'react-hot-toast';
 // Providers
 import { useLocationProvider } from '@/providers/LocationProvider';
 import { useGlobalProvider } from '@/providers/GlobalProvider';
 // Types
 import { AddVoteForm, AddVoteResponse, ApiResponse, PlacesResponse } from '@/types';
-import { ArrowBigDown, ArrowBigUp, Globe, MapPin, Phone, Star } from 'lucide-react';
+import { ArrowBigDown, ArrowBigUp, Globe, MapPin, Phone, Star, Tag } from 'lucide-react';
 
 // Interface
 interface PlaceCardProps {
@@ -49,7 +50,6 @@ const PlaceSkeletonLoader = () => {
                         <div className="w-24 h-4 bg-gray-300 rounded"></div>
                         <div className="w-1/3 h-3 bg-gray-300 rounded"></div>
                     </motion.div>
-
                 ))
             }
         </>
@@ -62,53 +62,67 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
     // Location
     const { urlParams, setParams } = useLocationProvider();
     // Global
-    const { userData } = useGlobalProvider();
+    const { status, userData } = useGlobalProvider();
     // States
     // Up Votes
-    const [upVotes, setUpVotes] = useState<number | null>(null);
+    const [upVotes, setUpVotes] = useState<number>(0);
     // Down Votes
-    const [downVotes, setDownVotes] = useState<number | null>(null);
+    const [downVotes, setDownVotes] = useState<number>(0);
+    // Vote commited by user
+    const [voteCommited, setVoteCommited] = useState<'UP' | 'DOWN' | null>(null);
+    // debounce if voting is in progress 
+    const [isVoting, setIsVoting] = useState<boolean>(false);
 
-    // Undo Vote
-    const undoVote = (direction: 'UP' | 'DOWN') => {
-        if (!upVotes || !downVotes) return;
-
-        // 
-        if (direction === 'UP') {
-            setUpVotes(upVotes - 1);
-        } else if (direction === 'DOWN') {
-            setDownVotes(downVotes - 1);
-        }
-    }
     // registerVote
-    const vote = (direction: 'UP' | 'DOWN'): boolean => {
-        if (!upVotes || !downVotes) return false;
+    const applyVote = (direction: 'UP' | 'DOWN', revert: boolean) => {
+        if (isVoting) return;
+        if (status !== 'authenticated') return;
 
-        let isElgibleToVote: boolean = true;
-        if (urlParams.tag === 'all') isElgibleToVote = false;
-
-        const userVotesData = userData?.votes;
-        const placeTagId = place.tags[0].place_tag_id;
-        userVotesData?.forEach((vote) => {
-            if (vote.place_tag_id === placeTagId) {
-                isElgibleToVote = false;
-            }
-        })
-
-        if (isElgibleToVote) {
-            if (direction === 'UP') setUpVotes(upVotes + 1);
-            else setUpVotes(upVotes + 1);
+        if (!voteCommited) {
+            if (direction === 'UP') !revert ? setUpVotes((v) => v + 1) : setUpVotes((v) => v - 1);
+            if (direction === 'DOWN') !revert ? setDownVotes((v) => v + 1) : setDownVotes((v) => v - 1);
+            setVoteCommited(direction);
+            return;
         }
 
-        return isElgibleToVote;
+        if (voteCommited === direction) {
+            if (direction === 'UP') !revert ? setUpVotes((v) => v - 1) : setUpVotes((v) => v + 1);
+            if (direction === 'DOWN') !revert ? setDownVotes((v) => v - 1) : setDownVotes((v) => v + 1);
+            setVoteCommited(null);
+            return;
+        }
+
+        if (direction === 'UP') {
+            if (!revert) {
+                setUpVotes((v) => v + 1);
+                setDownVotes((v) => v - 1);
+            } else {
+                setUpVotes((v) => v - 1);
+                setDownVotes((v) => v + 1);
+            }
+        }
+        if (direction === 'DOWN') {
+            if (!revert) {
+                setUpVotes((v) => v - 1);
+                setDownVotes((v) => v + 1);
+            } else {
+                setUpVotes((v) => v + 1);
+                setDownVotes((v) => v - 1);
+            }
+        }
+        setVoteCommited(direction);
+        return;
     }
     // Handle Votes
     const handleVote = async (direction: 'UP' | 'DOWN') => {
-        // Dose vote after check's on client side 
-        const isVoted = vote(direction);
-        if (!isVoted) return;
+        if (isVoting) return;
 
         try {
+            setIsVoting(true);
+
+            // Dose vote after check's on client side 
+            applyVote(direction, false);
+
             const formData: AddVoteForm = {
                 placeId: place.place_id,
                 tag: urlParams.tag,
@@ -126,22 +140,24 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
             if (!data.success) {
                 throw new Error(data.message);
             }
+
         } catch (err) {
             // Message
             const msg = err instanceof Error ? err.message : "Unexpected error.";
             // 
+            toast.error(msg);
+            // 
             console.error("Error in handleVote in PlaceCard in PlacesShowroom.", "Message : ", msg, "Error : ", err);
             // 
-            undoVote(direction);
+            applyVote(direction, true);
+        } finally {
+            setIsVoting(false);
         }
-
     }
 
     // Effects
     useEffect(() => {
-        const fetchVotes = () => {
-            if (upVotes && downVotes) return;
-
+        const fetchVoteCount = () => {
             if (urlParams.tag === 'All') {
                 setUpVotes(place.total_up_votes);
                 setDownVotes(place.total_down_votes);
@@ -151,8 +167,25 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
             }
         };
 
-        fetchVotes();
-    }, [place])
+        const fetchVoteCommit = () => {
+            if (status !== 'authenticated') return;
+            if (!userData) return;
+            if (urlParams.tag === 'all') return;
+
+            const userVotesData = userData.votes;
+            const placeTagId = place.tags[0].place_tag_id;
+            userVotesData.forEach((vote) => {
+                if (vote.place_tag_id === placeTagId) {
+                    setVoteCommited(vote.vote_type);
+                } else {
+                    setVoteCommited(null);
+                }
+            })
+        }
+
+        fetchVoteCount();
+        fetchVoteCommit();
+    }, [place, userData, urlParams])
 
     return (
         <div className='border-2 border-primary bg-primary/10 rounded-lg p-2 flex flex-col items-center justify-center gap-y-2 overflow-x-hidden'>
@@ -198,9 +231,9 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
             </div>
 
             {/*  */}
-            <div className='min-w-full flex flex-row items-center overflow-x-scroll scrollbar-hidden gap-x-1 '>
+            <div className={`min-w-full flex flex-row justify-around items-center overflow-x-scroll scrollbar-hidden gap-x-1`}>
                 {place.tags.map((tag, idx) => (
-                    <button onClick={() => { setParams(['tag'], [tag.tag_name]) }} className='bg-primary border border-primary rounded-full py-1 px-2 text-[12px] font-semibold text-white hover:bg-transparent hover:text-primary cursor-pointer transition-colors text-nowrap' key={idx}>
+                    <button onClick={() => { setParams(['tag'], [tag.tag_name]) }} disabled={tag.tag_name === urlParams.tag} className='bg-primary border border-primary rounded-full py-1 px-2 text-[12px] font-semibold text-white enabled:hover:bg-transparent enabled:hover:text-primary enabled:cursor-pointer transition-colors text-nowrap' key={idx}>
                         {tag.tag_name}
                     </button>
                 ))}
@@ -208,14 +241,26 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
 
             {/* Votes */}
             <div className='flex flex-row items-center'>
-                <button onClick={() => handleVote('UP')} className='bg-secondary border border-secondary rounded-full rounded-r-lg p-2.5 cursor-pointer flex items-center gap-x-2 hover:bg-transparent transition-colors group'>
-                    <ArrowBigUp className='w-4 h-4 fill-white text-white group-hover:fill-secondary group-hover:text-secondary' />
-                    <p className='text-sm text-white group-hover:text-secondary'>{upVotes}</p>
+                <button
+                    onClick={() => handleVote('UP')}
+                    disabled={status !== 'authenticated' || urlParams.tag === 'All'}
+                    className=" bg-secondary border border-secondary rounded-full rounded-r-lg p-2.5 flex items-center gap-x-2 transition-colors enabled:cursor-pointer enabled:hover:bg-transparent group enabled:group-hover:text-secondary disabled:bg-secondary/40 disabled:border-none"
+                >
+                    <ArrowBigUp
+                        className="w-4 h-4 fill-white text-white group-hover:fill-secondary group-hover:text-secondary "
+                    />
+                    <p className="text-sm text-white group-hover:text-secondary">{upVotes}</p>
                 </button>
 
-                <button onClick={() => handleVote('DOWN')} className='bg-primary border border-primary rounded-full rounded-l-lg p-2.5 cursor-pointer flex items-center gap-x-2 hover:bg-transparent transition-colors group'>
-                    <ArrowBigDown className='w-4 h-4 fill-white text-white group-hover:fill-primary group-hover:text-primary' />
-                    <p className='text-sm text-white group-hover:text-primary'>{downVotes}</p>
+                <button
+                    onClick={() => handleVote('DOWN')}
+                    disabled={status !== 'authenticated' || urlParams.tag === 'All'}
+                    className="bg-primary border border-primary rounded-full rounded-l-lg p-2.5 flex items-center gap-x-2 transition-colors enabled:cursor-pointer enabled:hover:bg-transparent group enabled:group-hover:text-primary disabled:bg-primary/40 disabled:border-none"
+                >
+                    <ArrowBigDown
+                        className="w-4 h-4 fill-white text-white group-hover:fill-primary group-hover:text-primary"
+                    />
+                    <p className="text-sm text-white group-hover:text-primary">{downVotes}</p>
                 </button>
             </div>
 

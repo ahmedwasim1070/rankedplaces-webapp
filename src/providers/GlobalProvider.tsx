@@ -17,6 +17,7 @@ import { ApiResponse, FetchUserData } from "@/types";
 // Interfaces
 interface ProviderProps {
     userData: FetchUserData | null;
+    status: 'authenticated' | 'loading' | 'unauthenticated';
     pathname: string;
     isLoading: boolean;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -41,8 +42,6 @@ export const GlobalProvider = ({ children }: Props) => {
     const { isLocationProviderLoading } = useLocationProvider();
     // Path
     const pathname = usePathname();
-    // States
-    const isAuthenticated = status === 'authenticated';
     // User data
     const [userData, setUserData] = useState<FetchUserData | null>(null);
     // Login
@@ -72,31 +71,34 @@ export const GlobalProvider = ({ children }: Props) => {
 
     // Effects
     useEffect(() => {
-        if (isAuthenticated) {
-            (async () => {
-                try {
-                    const res = await fetch('/api/fetch/user-data');
-                    const data = (await res.json()) as ApiResponse<null | never>;
+        const fetchUserData = async () => {
+            if (userData) return;
+            if (status !== 'authenticated') return;
 
-                    if (!data.success) {
-                        throw new Error(data.message);
-                    }
+            try {
+                const res = await fetch('/api/fetch/user-data');
+                const data = (await res.json()) as ApiResponse<FetchUserData | never>;
 
-                    setUserData(data.data);
-                } catch (err) {
-                    // Message
-                    const msg = err instanceof Error ? err.message : "Unexpected error.";
-                    // Console
-                    console.error("Error in fetchUserData in GlobalProvider.", "Message : ", msg, "Error : ", err);
+                if (!data.success) {
+                    throw new Error(data.message);
                 }
-            })
+
+                setUserData(data.data);
+            } catch (err) {
+                // Message
+                const msg = err instanceof Error ? err.message : "Unexpected error.";
+                // Console
+                console.error("Error in fetchUserData in GlobalProvider.", "Message : ", msg, "Error : ", err);
+            }
         }
-    }, [isAuthenticated])
+
+        fetchUserData();
+    }, [status])
 
     // Values
     const values = useMemo(() => ({
-        userData, pathname, isLoading, setIsLoading, mainNav, setIsSigninPopup, setIsAddTagPop, setIsAddPlacePop,
-    }), [userData, pathname, isLoading])
+        userData, status, pathname, isLoading, setIsLoading, mainNav, setIsSigninPopup, setIsAddTagPop, setIsAddPlacePop,
+    }), [userData, status, pathname, isLoading])
 
     return (
         <GlobalContext.Provider value={values}>
