@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiError } from "@/lib/error/ApiError";
 // Types
 import { ApiResponse, CitiesResponse } from "@/types";
-import { GeoNamesCity } from "@/types/externel-api";
+import { GeoNamesCity } from "@/types";
 
 //
 export async function GET(request: NextRequest) {

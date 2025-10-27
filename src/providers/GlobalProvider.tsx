@@ -24,10 +24,16 @@ interface ProviderProps {
     setIsSigninPopup: React.Dispatch<React.SetStateAction<boolean>>;
     setIsAddTagPop: React.Dispatch<React.SetStateAction<boolean>>;
     setIsAddPlacePop: React.Dispatch<React.SetStateAction<boolean>>;
-    mainNav: any[];
+    mainNav: MainNav[];
 }
 interface Props {
     children: ReactNode;
+}
+
+type MainNav = {
+    href: string;
+    label: string;
+    isActive: boolean;
 }
 
 // Context
@@ -56,7 +62,7 @@ export const GlobalProvider = ({ children }: Props) => {
 
     // Constants
     // Nav Contents
-    const mainNav = [
+    const mainNav: MainNav[] = [
         {
             href: '/top-country-places',
             label: 'Top Country Places',

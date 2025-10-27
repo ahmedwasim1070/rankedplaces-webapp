@@ -1,5 +1,5 @@
 // Imports
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { MapPin, Search, Star, X, ChevronLeft } from "lucide-react"
 // Utils
@@ -323,18 +323,23 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
         }
     }
     // handle tag select
-    const handleTagSelect = (tagName: string) => {
+    const handleTagSelect = useCallback((tagName: string) => {
         setSelectedTags((prev) => {
-            const isAlreadyExists: boolean = prev.some(tag => tag === tagName) || (selectedPlaceDetails.dbData ? selectedPlaceDetails.dbData.place_tag.some(placeTag => placeTag.tag.name === tagName) : false);
+            const isAlreadyExists: boolean =
+                prev.some(tag => tag === tagName) ||
+                (selectedPlaceDetails.dbData
+                    ? selectedPlaceDetails.dbData.place_tag.some(placeTag => placeTag.tag.name === tagName)
+                    : false);
+
             if (isAlreadyExists) {
                 toast.error("Tag already exsists");
                 return [...prev];
             }
             return [...prev, tagName];
-        })
+        });
         setSuggestedTags(null);
         setSearchedTag("");
-    }
+    }, [selectedPlaceDetails]);
     // handle tag removal by name
     const handleTagRemove = (tagName: string) => {
         setSelectedTags(prev => prev.filter(tag => tag !== tagName));
@@ -417,7 +422,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
         }
 
         hasAutoAddedTagRef.current = true;
-    }, [selectedPlaceDetails, urlParams, handleTagSelect]);
+    }, [selectedPlaceDetails, urlParams]);
 
     return (
         <div>
@@ -491,7 +496,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
                             autoComplete="off"
                             onChange={handleChange}
                             className="border-2 border-primary rounded-lg px-2 py-1.5 outline-none text-secondary"
-                            placeholder="Search exsistance tag's."
+                            placeholder="Search exsistance tags."
                         />
 
                         {/*  */}

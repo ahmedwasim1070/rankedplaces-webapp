@@ -9,7 +9,7 @@ export type GeoNamesCity = {
 // api-coutnries response
 export type ApiCountries = {
   name: string;
-  lat: string;
-  lng: string;
+  alpha2Code: string;
+  capital: string;
   [key: string]: unknown;
 };

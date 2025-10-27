@@ -334,7 +334,7 @@ function PlaceShowroom() {
         };
 
         fetchPlaces();
-    }, [urlParams.tag])
+    }, [urlParams, pathname])
 
     return (
         <section className={`${places !== null || isLoading ? 'min-w-full px-4 py-2 grid grid-cols-3 md:grid-cols-3 xxs:grid-cols-1 gap-y-4 gap-x-2 ' : 'flex items-center justify-center p-10'}`}>

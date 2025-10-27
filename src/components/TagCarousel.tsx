@@ -135,7 +135,7 @@ function TagCarousel() {
         }
 
         fetchTopTags();
-    }, [urlParams.tag]);
+    }, [urlParams, pathname]);
 
     return (
         <section className="min-w-full py-2 flex flex-row items-center overflow-x-hidden px-2">
