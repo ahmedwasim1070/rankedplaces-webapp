@@ -39,7 +39,7 @@ export const GlobalProvider = ({ children }: Props) => {
     // Session
     const { data: session, status } = useSession();
     // Location
-    const { isLocationProviderLoading } = useLocationProvider();
+    const { urlParams, isLocationProviderLoading } = useLocationProvider();
     // Path
     const pathname = usePathname();
     // User data
@@ -72,7 +72,6 @@ export const GlobalProvider = ({ children }: Props) => {
     // Effects
     useEffect(() => {
         const fetchUserData = async () => {
-            if (userData) return;
             if (status !== 'authenticated') return;
 
             try {
@@ -89,11 +88,13 @@ export const GlobalProvider = ({ children }: Props) => {
                 const msg = err instanceof Error ? err.message : "Unexpected error.";
                 // Console
                 console.error("Error in fetchUserData in GlobalProvider.", "Message : ", msg, "Error : ", err);
+                // 
+                setUserData(null);
             }
         }
 
         fetchUserData();
-    }, [status])
+    }, [status, urlParams.tag])
 
     // Values
     const values = useMemo(() => ({

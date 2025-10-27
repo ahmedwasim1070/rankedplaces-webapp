@@ -244,12 +244,14 @@ const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSel
 const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, setIsAddPlacePop }: AddPlaceConfirmationProps) => {
     // Provider
     // Loaction
-    const { urlParams } = useLocationProvider();
+    const { setParams, urlParams } = useLocationProvider();
     // Refs
     // Timer
     const debouncerTimerRef = useRef<NodeJS.Timeout | null>(null);
     // Last typed time
     const lastTypedAtRef = useRef<number>(0);
+    // For auto addition of tag prevents duplicates to getting pushed again when automatically
+    const hasAutoAddedTagRef = useRef(false);
     // States
     // City
     const [city, setCity] = useState<string | null>(null);
@@ -370,6 +372,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
             }
 
             toast.success(data.message);
+            setParams(['tag'], [formData.userAddedTags[0]]);
             setSelectedPlaceDetails(null);
             setSuggestedTags(null);
             setSelectedTags([]);
@@ -395,17 +398,26 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
 
     // Effects
     useEffect(() => {
+        if (!selectedPlaceDetails) return;
+
         setCity(getAddressComponent(selectedPlaceDetails.googleData.address_components, 'locality')?.long_name || null);
         setCountry(getAddressComponent(selectedPlaceDetails.googleData.address_components, 'country')?.long_name || null);
+    }, [selectedPlaceDetails]);
+    // 
+    useEffect(() => {
+        if (!selectedPlaceDetails || urlParams.tag === 'All') return;
+        if (hasAutoAddedTagRef.current) return;
 
-        // Automatically adds the tag if urlParams selected is not in with the place
-        if (urlParams.tag !== 'All') {
-            const isTagAlreadyInPlace = selectedPlaceDetails.dbData?.place_tag.some((placeTag) => placeTag.tag.name === urlParams.tag);
-            if (!isTagAlreadyInPlace) {
-                handleTagSelect(urlParams.tag);
-            }
+        const isTagAlreadyInPlace = selectedPlaceDetails.dbData?.place_tag.some(
+            (placeTag) => placeTag.tag.name === urlParams.tag
+        );
+
+        if (!isTagAlreadyInPlace) {
+            handleTagSelect(urlParams.tag);
         }
-    }, [])
+
+        hasAutoAddedTagRef.current = true;
+    }, [selectedPlaceDetails, urlParams]);
 
     return (
         <div>

@@ -43,8 +43,20 @@ async function uploadImageToCloudinary(
   }
 }
 
-// Generate Photo Url
-function generateGooglePhotoUrl(photoReference: string): string {
+// Generates google photo url
+async function generateGooglePhotoUrl(
+  photoReference: string
+): Promise<string | null> {
+  if (!photoReference || photoReference.length < 10) {
+    console.error("Invalid photo reference:", photoReference);
+    return null;
+  }
+
+  if (!process.env.GOOGLE_PLACES_API_KEY) {
+    console.error("Missing GOOGLE_PLACES_API_KEY");
+    return null;
+  }
+
   return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1024&photoreference=${photoReference}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
 }
 
@@ -112,10 +124,6 @@ export async function POST(request: NextRequest) {
     const sanitizedPlace = {
       place_id: sanitizeString(placeByGoogle.place_id, 100),
       name: sanitizeString(placeByGoogle.name, 255),
-      pfp: sanitizeString(
-        placeByGoogle.photos ? placeByGoogle.photos[0].photo_reference : "",
-        50
-      ),
       formatted_address: sanitizeString(placeByGoogle.formatted_address, 500),
       lat: placeByGoogle.geometry.location.lat,
       lng: placeByGoogle.geometry.location.lng,
@@ -139,22 +147,20 @@ export async function POST(request: NextRequest) {
           : 0,
     };
 
-    // Upload Google Place PFP to Cloudinary
-    const gMapPfpUrl =
-      sanitizedPlace.pfp.length > 1
-        ? generateGooglePhotoUrl(sanitizedPlace.pfp)
-        : null;
+    const photoReference = placeByGoogle.photos?.[0]?.photo_reference || "";
     let cloudinaryImageUrl: string | null = null;
-    if (gMapPfpUrl) {
+    if (photoReference) {
       try {
-        const publicId = `business_${sanitizedPlace.place_id}_${Date.now()}`;
-
-        cloudinaryImageUrl = await uploadImageToCloudinary(
-          gMapPfpUrl,
-          publicId
-        );
+        const gMapPfpUrl = await generateGooglePhotoUrl(photoReference);
+        if (gMapPfpUrl) {
+          const publicId = `business_${sanitizedPlace.place_id}_${Date.now()}`;
+          cloudinaryImageUrl = await uploadImageToCloudinary(
+            gMapPfpUrl,
+            publicId
+          );
+        }
       } catch (cloudinaryError) {
-        console.error("Cloudinary Image upload failed.");
+        console.error("Cloudinary Image upload failed:", cloudinaryError);
       }
     }
 

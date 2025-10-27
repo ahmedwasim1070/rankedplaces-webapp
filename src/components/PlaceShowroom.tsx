@@ -5,12 +5,14 @@ import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
 import toast from 'react-hot-toast';
+// Components
+import AddPlaceBtn from './AddPlaceBtn';
 // Providers
 import { useLocationProvider } from '@/providers/LocationProvider';
 import { useGlobalProvider } from '@/providers/GlobalProvider';
 // Types
 import { AddVoteForm, AddVoteResponse, ApiResponse, PlacesResponse } from '@/types';
-import { ArrowBigDown, ArrowBigUp, Globe, MapPin, Phone, Star, Tag } from 'lucide-react';
+import { ArrowBigDown, ArrowBigUp, Globe, MapPin, Phone, Star } from 'lucide-react';
 
 // Interface
 interface PlaceCardProps {
@@ -140,7 +142,6 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
             if (!data.success) {
                 throw new Error(data.message);
             }
-
         } catch (err) {
             // Message
             const msg = err instanceof Error ? err.message : "Unexpected error.";
@@ -157,35 +158,35 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
 
     // Effects
     useEffect(() => {
-        const fetchVoteCount = () => {
-            if (urlParams.tag === 'All') {
-                setUpVotes(place.total_up_votes);
-                setDownVotes(place.total_down_votes);
-            } else {
-                setUpVotes(place.tags[0].up_votes);
-                setDownVotes(place.tags[0].down_votes);
-            }
-        };
+        setUpVotes(0);
+        setDownVotes(0);
+        setVoteCommited(null);
 
-        const fetchVoteCommit = () => {
-            if (status !== 'authenticated') return;
-            if (!userData) return;
-            if (urlParams.tag === 'all') return;
+        if (urlParams.tag === 'All') {
+            setUpVotes(place.total_up_votes ?? 0);
+            setDownVotes(place.total_down_votes ?? 0);
+        } else {
+            const tagEntry = place.tags && place.tags.length > 0 ? place.tags[0] : null;
+            setUpVotes(tagEntry?.up_votes ?? 0);
+            setDownVotes(tagEntry?.down_votes ?? 0);
+        }
 
-            const userVotesData = userData.votes;
-            const placeTagId = place.tags[0].place_tag_id;
-            userVotesData.forEach((vote) => {
-                if (vote.place_tag_id === placeTagId) {
-                    setVoteCommited(vote.vote_type);
+        if (status === 'authenticated' && userData && urlParams.tag !== 'All') {
+            const placeTagId = place.tags && place.tags.length > 0 ? place.tags[0].place_tag_id : undefined;
+            if (placeTagId) {
+                const existingVote = userData.votes.find(v => v.place_tag_id === placeTagId);
+                if (existingVote) {
+                    setVoteCommited(existingVote.vote_type);
                 } else {
                     setVoteCommited(null);
                 }
-            })
+            } else {
+                setVoteCommited(null);
+            }
+        } else {
+            setVoteCommited(null);
         }
-
-        fetchVoteCount();
-        fetchVoteCommit();
-    }, [place, userData, urlParams])
+    }, [place.place_id, place.total_up_votes, place.total_down_votes, place.tags, userData, status, urlParams.tag]);
 
     return (
         <div className='border-2 border-primary bg-primary/10 rounded-lg p-2 flex flex-col items-center justify-center gap-y-2 overflow-x-hidden'>
@@ -193,7 +194,7 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
             {/* Pfp */}
             {place.pfp && (
                 <CldImage
-                    className="w-full rounded-t-lg font-semibold object-cover"
+                    className="w-full rounded-lg font-semibold object-cover"
                     src={place.pfp}
                     width={100}
                     height={48}
@@ -221,19 +222,19 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
             <div className='min-w-full flex flex-row items-center justify-between px-4 my-2'>
                 <div className='flex flex-row items-center gap-x-1'>
                     <Phone className='w-4 h-4 text-secondary' />
-                    <a href={`tel:${place.phone}`} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>{place.phone}</a>
+                    <a href={`tel:${place.phone}`} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>phone</a>
                 </div>
 
                 <div className='flex flex-row items-center gap-x-1'>
                     <Globe className='w-4 h-4 text-secondary' />
-                    <a href={place?.website || ''} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>{place.website ? place.website : 'Website'}</a>
+                    <a href={place?.website || ''} className='font-semibold text-sm text-secondary hover:text-primary underline cursor-pointer transition-colors'>Website</a>
                 </div>
             </div>
 
             {/*  */}
             <div className={`min-w-full flex flex-row justify-around items-center overflow-x-scroll scrollbar-hidden gap-x-1`}>
-                {place.tags.map((tag, idx) => (
-                    <button onClick={() => { setParams(['tag'], [tag.tag_name]) }} disabled={tag.tag_name === urlParams.tag} className='bg-primary border border-primary rounded-full py-1 px-2 text-[12px] font-semibold text-white enabled:hover:bg-transparent enabled:hover:text-primary enabled:cursor-pointer transition-colors text-nowrap' key={idx}>
+                {place.tags.map((tag) => (
+                    <button onClick={() => { setParams(['tag'], [tag.tag_name]) }} disabled={tag.tag_name === urlParams.tag} className='bg-primary border border-primary rounded-full py-1 px-2 text-[12px] font-semibold text-white enabled:hover:bg-transparent enabled:hover:text-primary enabled:cursor-pointer transition-colors text-nowrap' key={tag.tag_name}>
                         {tag.tag_name}
                     </button>
                 ))}
@@ -244,23 +245,23 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
                 <button
                     onClick={() => handleVote('UP')}
                     disabled={status !== 'authenticated' || urlParams.tag === 'All'}
-                    className=" bg-secondary border border-secondary rounded-full rounded-r-lg p-2.5 flex items-center gap-x-2 transition-colors enabled:cursor-pointer enabled:hover:bg-transparent group enabled:group-hover:text-secondary disabled:bg-secondary/40 disabled:border-none"
+                    className={` bg-secondary border border-secondary rounded-full rounded-r-lg p-2.5 flex items-center gap-x-2 transition-colors enabled:cursor-pointer enabled:hover:bg-transparent group enabled:group-hover:text-secondary disabled:bg-secondary/40 disabled:border-none ${voteCommited === 'UP' && 'bg-transparent'}`}
                 >
                     <ArrowBigUp
-                        className="w-4 h-4 fill-white text-white group-hover:fill-secondary group-hover:text-secondary "
+                        className={`w-4 h-4 group-hover:fill-secondary group-hover:text-secondary ${voteCommited === 'UP' ? 'fill-secondary text-secondary' : 'text-white fill-white'}`}
                     />
-                    <p className="text-sm text-white group-hover:text-secondary">{upVotes}</p>
+                    <p className={`text-sm  group-hover:text-secondary ${voteCommited === 'UP' ? 'text-secondary' : 'text-white'}`}>{upVotes}</p>
                 </button>
 
                 <button
                     onClick={() => handleVote('DOWN')}
                     disabled={status !== 'authenticated' || urlParams.tag === 'All'}
-                    className="bg-primary border border-primary rounded-full rounded-l-lg p-2.5 flex items-center gap-x-2 transition-colors enabled:cursor-pointer enabled:hover:bg-transparent group enabled:group-hover:text-primary disabled:bg-primary/40 disabled:border-none"
+                    className={`bg-primary border border-primary rounded-full rounded-l-lg p-2.5 flex items-center gap-x-2 transition-colors enabled:cursor-pointer enabled:hover:bg-transparent group enabled:group-hover:text-primary disabled:bg-primary/40 disabled:border-none ${voteCommited === 'DOWN' && 'bg-transparent'}`}
                 >
                     <ArrowBigDown
-                        className="w-4 h-4 fill-white text-white group-hover:fill-primary group-hover:text-primary"
+                        className={`w-4 h-4 group-hover:fill-primary group-hover:text-primary ${voteCommited === 'DOWN' ? 'fill-primary text-primary' : 'text-white fill-white'}`}
                     />
-                    <p className="text-sm text-white group-hover:text-primary">{downVotes}</p>
+                    <p className={`text-sm group-hover:text-primary ${voteCommited === 'DOWN' ? 'text-primary' : 'text-white'}`}>{downVotes}</p>
                 </button>
             </div>
 
@@ -270,7 +271,6 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
                 <p className='font-semibold text-gray-500 '>{place.review_value}</p>
                 <p className='text-sm font-semibold text-gray-500 '>({place.review_amount})</p>
             </div>
-
 
             {/*  */}
             <a className='underline text-primary hover:text-secondary cursor-pointer text-sm' href={place.maps_url || 'https://mapgs.google.com'}>Google Map</a>
@@ -311,8 +311,7 @@ function PlaceShowroom() {
     // Fetch Places if not any
     useEffect(() => {
         const fetchPlaces = async () => {
-            if (places) return;
-
+            setPlaces(null);
             setIsLoading(true);
             const url = getFetchPlaceUrl();
             if (!url) {
@@ -334,16 +333,17 @@ function PlaceShowroom() {
                 const msg = err instanceof Error ? err.message : "Unexpected error.";
                 // 
                 console.error("Error in fetchPlaces in PlacesShowroom.", "Message : ", msg, "Error : ", err);
+                setPlaces(null);
             } finally {
                 setIsLoading(false);
             }
         };
 
         fetchPlaces();
-    }, [])
+    }, [urlParams.tag])
 
     return (
-        <section className='min-w-full px-4 py-2 grid grid-cols-3 md:grid-cols-3 xxs:grid-cols-1 gap-y-4 gap-x-2 '>
+        <section className={`${places !== null || isLoading ? 'min-w-full px-4 py-2 grid grid-cols-3 md:grid-cols-3 xxs:grid-cols-1 gap-y-4 gap-x-2 ' : 'flex items-center justify-center p-10'}`}>
 
             {/* Loader */}
             {isLoading && <PlaceSkeletonLoader />}
@@ -356,6 +356,15 @@ function PlaceShowroom() {
                     ))
                 )
             }
+
+            {/*  */}
+            {places === null && (
+                <div className='flex flex-col items-center justify-center gap-y-2'>
+                    <p className='text-center text-xl font-semibold text-secondary'>No Places yet with this tag</p>
+                    <p className='text-center  font-semibold text-primary'>Start Adding</p>
+                    <AddPlaceBtn />
+                </div>
+            )}
 
         </section>
     )

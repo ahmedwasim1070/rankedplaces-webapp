@@ -17,7 +17,7 @@ function Hero() {
     // Location
     const { urlParams } = useLocationProvider();
     // Global
-    const { pathname } = useGlobalProvider();
+    const { status, pathname } = useGlobalProvider();
 
     return (
         <main role="main" className="min-w-screen py-14 flex flex-col items-center bg-gradient-to-b from-background to-white gap-y-4">
@@ -55,6 +55,10 @@ function Hero() {
 
             {/*  */}
             <SigninBtn />
+
+            {status !== 'authenticated' && (
+                <p className="text-primary font-semibold text-sm">Login To Add Tag , Places and Votes</p>
+            )}
 
             <div className="flex flex-row items-center">
                 {/*  */}

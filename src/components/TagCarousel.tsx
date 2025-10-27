@@ -111,8 +111,6 @@ function TagCarousel() {
     useEffect(() => {
         // Fetch all the top tags
         const fetchTopTags = async () => {
-            if (tags) return;
-
             setIsFetching(true);
 
             const url = getFetchTagUrl();
@@ -137,13 +135,15 @@ function TagCarousel() {
                     err instanceof Error ? err.message : "Unexpected error.";
                 // 
                 console.error("Error in fetchTopTags in TagCarousel.", "Message : ", msg, "Error : ", err);
+                // 
+                setTags(null);
             } finally {
                 setIsFetching(false);
             }
         }
 
         fetchTopTags();
-    }, []);
+    }, [urlParams.tag]);
 
     return (
         <section className="min-w-full py-2 flex flex-row items-center overflow-x-hidden px-2">
