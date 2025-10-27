@@ -1,6 +1,7 @@
 // Imports
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { Suspense } from "react";
 // CSS
 import "./globals.css";
 // Providers
@@ -8,6 +9,7 @@ import { LocationProvider } from "@/providers/LocationProvider";
 // Components
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Loader from "@/components/Loader";
 // Types
 import { LocationCookieData } from "@/types";
 import { SessionWrapper } from "@/providers/SessionWrapper";
@@ -45,22 +47,23 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className="overflow-x-hidden">
+        <Suspense fallback={<Loader />}>
+          {/* Location Provider */}
+          <LocationProvider initialLocation={locationCookieData}>
 
-        {/* Location Provider */}
-        <LocationProvider initialLocation={locationCookieData}>
+            {/* All children wrapped inside GlobalProvider all the global things goes here */}
+            <SessionWrapper>
+              {/* Header */}
+              <Header />
 
-          {/* All children wrapped inside GlobalProvider all the global things goes here */}
-          <SessionWrapper>
-            {/* Header */}
-            <Header />
+              {children}
 
-            {children}
+              {/* Footer */}
+              <Footer />
+            </SessionWrapper>
 
-            {/* Footer */}
-            <Footer />
-          </SessionWrapper>
-
-        </LocationProvider>
+          </LocationProvider>
+        </Suspense>
       </body>
     </html>
   );
