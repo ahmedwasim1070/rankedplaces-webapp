@@ -417,7 +417,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
         }
 
         hasAutoAddedTagRef.current = true;
-    }, [selectedPlaceDetails, urlParams]);
+    }, [selectedPlaceDetails, urlParams, handleTagSelect]);
 
     return (
         <div>

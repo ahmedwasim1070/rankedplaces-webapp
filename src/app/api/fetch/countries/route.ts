@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { ApiError } from "@/lib/error/ApiError";
 // Types
 import { ApiResponse, CountryResponse } from "@/types";
+import { ApiCountries } from "@/types/externel-api";
 
 //
 export async function GET() {
@@ -13,7 +14,7 @@ export async function GET() {
       throw new ApiError("Error from external api.", response.status);
     }
 
-    const data = await response.json();
+    const data: ApiCountries[] = await response.json();
     if (!data || data.length === 0) {
       throw new ApiError("Error from external api.Incomplelete Response.", 404);
     }

@@ -9,7 +9,7 @@ import { useGlobalProvider } from "@/providers/GlobalProvider";
 // 
 function Footer() {
     // Provider
-    const { mainNav, pathname } = useGlobalProvider();
+    const { mainNav } = useGlobalProvider();
     // Nav Item
     const primaryNavigationItems = [
         {

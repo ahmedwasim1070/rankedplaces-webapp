@@ -1,8 +1,9 @@
 "use client";
 
-import { useGlobalProvider } from "@/providers/GlobalProvider";
 // Imports
 import { useSession } from "next-auth/react";
+// Provider
+import { useGlobalProvider } from "@/providers/GlobalProvider";
 
 // 
 function SigninBtn() {

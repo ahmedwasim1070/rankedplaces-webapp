@@ -232,7 +232,7 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
             </div>
 
             {/*  */}
-            <div className={`min-w-full flex flex-row justify-around items-center overflow-x-scroll scrollbar-hidden gap-x-1`}>
+            <div className={`min-w-full flex flex-row items-start justify-around overflow-x-scroll scrollbar-hidden gap-x-1`}>
                 {place.tags.map((tag) => (
                     <button onClick={() => { setParams(['tag'], [tag.tag_name]) }} disabled={tag.tag_name === urlParams.tag} className='bg-primary border border-primary rounded-full py-1 px-2 text-[12px] font-semibold text-white enabled:hover:bg-transparent enabled:hover:text-primary enabled:cursor-pointer transition-colors text-nowrap' key={tag.tag_name}>
                         {tag.tag_name}
@@ -292,32 +292,26 @@ function PlaceShowroom() {
     // Places
     const [places, setPlaces] = useState<PlacesResponse[] | null>(null);
 
-    // generate fetch tag url
-    const getFetchPlaceUrl = (): string | null => {
-        let url = "/api/fetch/places";
-        switch (pathname) {
-            case "/":
-                return url + `/?fetch-by=world&tag=${urlParams.tag}&page=${urlParams.page}`;
-            case "/top-country-places":
-                return url + `/?fetch-by=country&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}`;
-            case "/top-city-places":
-                return url + `/?fetch-by=city&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
-            default:
-                return null;
-        }
-    };
 
     // Effects
     // Fetch Places if not any
     useEffect(() => {
+        // generate fetch tag url
         const fetchPlaces = async () => {
             setPlaces(null);
             setIsLoading(true);
-            const url = getFetchPlaceUrl();
-            if (!url) {
-                setIsLoading(false);
-                return;
-            };
+
+            // 
+            const url = "/api/fetch/places";
+            switch (pathname) {
+                case "/":
+                    url + `/?fetch-by=world&tag=${urlParams.tag}&page=${urlParams.page}`;
+                case "/top-country-places":
+                    url + `/?fetch-by=country&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}`;
+                case "/top-city-places":
+                    url + `/?fetch-by=city&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
+                default:
+            }
 
             try {
                 const res = await fetch(`${url}`);

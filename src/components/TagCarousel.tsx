@@ -88,20 +88,6 @@ function TagCarousel() {
             }
         }
     };
-    // generate fetch tag url
-    const getFetchTagUrl = (): string | null => {
-        let url = "/api/fetch/tags";
-        switch (pathname) {
-            case "/":
-                return url + "/?fetch-by=world";
-            case "/top-country-places":
-                return url + `/?fetch-by=country&country-code=${urlParams.country}`;
-            case "/top-city-places":
-                return url + `/?fetch-by=city&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
-            default:
-                return null;
-        }
-    };
     const handleTagChange = (value: string) => {
         setParams(['tag'], [value]);
     };
@@ -113,11 +99,17 @@ function TagCarousel() {
         const fetchTopTags = async () => {
             setIsFetching(true);
 
-            const url = getFetchTagUrl();
-            if (!url) {
-                setIsFetching(false);
-                return;
-            };
+            // 
+            const url = "/api/fetch/tags";
+            switch (pathname) {
+                case "/":
+                    url + "/?fetch-by=world";
+                case "/top-country-places":
+                    url + `/?fetch-by=country&country-code=${urlParams.country}`;
+                case "/top-city-places":
+                    url + `/?fetch-by=city&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
+                default:
+            }
 
             try {
                 const res = await fetch(`${url}`);

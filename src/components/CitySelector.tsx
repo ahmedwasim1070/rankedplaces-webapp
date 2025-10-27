@@ -97,7 +97,7 @@ function CitySelector() {
             }
         }
         fetchCities();
-    }, [cities]);
+    }, [cities, urlParams.country]);
 
     return (
         <select

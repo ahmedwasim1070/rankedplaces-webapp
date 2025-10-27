@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ApiError } from "@/lib/error/ApiError";
 // Types
 import { ApiResponse, CitiesResponse } from "@/types";
+import { GeoNamesCity } from "@/types/externel-api";
 
 //
 export async function GET(request: NextRequest) {
@@ -27,12 +28,12 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
-    const geoData = data?.geonames;
+    const geoData: GeoNamesCity[] = data?.geonames;
     if (!geoData || geoData.length === 0) {
       throw new ApiError("Error from external api.Incomplelete Response.", 404);
     }
 
-    const cityData: CitiesResponse[] = geoData.map((cityInfo: any) => ({
+    const cityData: CitiesResponse[] = geoData.map((cityInfo) => ({
       name: cityInfo.name,
       lat: parseFloat(cityInfo.lat),
       lng: parseFloat(cityInfo.lng),

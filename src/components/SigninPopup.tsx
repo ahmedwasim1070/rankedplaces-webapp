@@ -2,7 +2,7 @@
 
 // Imports
 import { ArrowRight, X } from "lucide-react"
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 // Providers

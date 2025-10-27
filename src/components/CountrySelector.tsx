@@ -114,7 +114,7 @@ function CountrySelector({ setIsCountrySelector }: Props) {
 
         // 
         fetchCountries();
-    }, [])
+    }, [countries])
 
     return (
         <>

@@ -105,7 +105,7 @@ function AddTagPopup() {
             setFormError({ ...formError, keyword: "Invalid Keyword" })
             setDisableSubmit(true);
         }
-    }, [formData])
+    }, [formData, formError])
 
     return (
         <section className="fixed min-w-screen min-h-screen bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center px-2">
