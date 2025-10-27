@@ -526,7 +526,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
 
                     {/*  */}
                     <div className="border-2 border-secondary rounded-lg p-2 space-y-1">
-                        <p className="text-sm text-secondary">Added Tag's : </p>
+                        <p className="text-sm text-secondary">Added Tags : </p>
 
                         {/* Tags */}
                         <div className="flex flex-row items-center flex-wrap gap-1 my-2 ">
