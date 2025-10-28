@@ -1,3 +1,6 @@
+
+export const dynamic = "force-dynamic";
+
 // Imports
 import type { Metadata } from "next";
 import { cookies } from "next/headers";

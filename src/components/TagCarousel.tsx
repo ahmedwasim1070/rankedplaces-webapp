@@ -100,15 +100,19 @@ function TagCarousel() {
             setIsFetching(true);
 
             // 
-            const url = "/api/fetch/tags";
+            let url = "/api/fetch/tags";
             switch (pathname) {
                 case "/":
-                    url + "/?fetch-by=world";
+                    url = url + "/?fetch-by=world";
+                    break;
                 case "/top-country-places":
-                    url + `/?fetch-by=country&country-code=${urlParams.country}`;
+                    url = url + `/?fetch-by=country&country-code=${urlParams.country}`;
+                    break;
                 case "/top-city-places":
-                    url + `/?fetch-by=city&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
+                    url = url + `/?fetch-by=city&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
+                    break;
                 default:
+                    break;
             }
 
             try {

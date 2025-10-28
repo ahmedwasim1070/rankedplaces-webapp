@@ -98,7 +98,6 @@ ALTER TABLE "public"."Places"
 ADD COLUMN geom geometry(Point, 4326);
 -- Create spatial index for efficient queries
 CREATE INDEX places_geom_idx ON "public"."Places" USING GIST (geom);
--- Backfill existing data
 UPDATE "public"."Places"
 SET geom = ST_SetSRID(ST_MakePoint(lng, lat), 4326)
 WHERE lat IS NOT NULL

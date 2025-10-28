@@ -302,16 +302,21 @@ function PlaceShowroom() {
             setIsLoading(true);
 
             // 
-            const url = "/api/fetch/places";
+            let url = "/api/fetch/places";
             switch (pathname) {
                 case "/":
-                    url + `/?fetch-by=world&tag=${urlParams.tag}&page=${urlParams.page}`;
+                    url = url + `/?fetch-by=world&tag=${urlParams.tag}&page=${urlParams.page}`;
+                    break;
                 case "/top-country-places":
-                    url + `/?fetch-by=country&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}`;
+                    url = url + `/?fetch-by=country&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}`;
+                    break;
                 case "/top-city-places":
-                    url + `/?fetch-by=city&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
+                    url = url + `/?fetch-by=city&tag=${urlParams.tag}&page=${urlParams.page}&country-code=${urlParams.country}&lat=${urlParams.lat}&lng=${urlParams.lng}`;
+                    break;
                 default:
+                    break;
             }
+            console.log(url);
 
             try {
                 const res = await fetch(`${url}`);
