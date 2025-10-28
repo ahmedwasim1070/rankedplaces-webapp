@@ -58,7 +58,7 @@ export const GlobalProvider = ({ children }: Props) => {
     // Popup screen state for tag-creation
     const [isAddTagPop, setIsAddTagPop] = useState(false);
     // Popup screen state for tag-creation
-    const [isAddPlacePop, setIsAddPlacePop] = useState(true);
+    const [isAddPlacePop, setIsAddPlacePop] = useState(false);
 
     // Constants
     // Nav Contents
