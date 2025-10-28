@@ -42,7 +42,7 @@ function SigninPopup() {
 
     return (
         <section className="fixed min-w-screen min-h-screen bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center px-2">
-            <div className="w-1/3 min-w-xxs bg-background rounded-lg shadow-sm px-2 py-4 border border-secondary/20 relative text-center space-y-5">
+            <div className="w-11/12 sm:w-96 md:w-[28rem] bg-background rounded-lg shadow-sm px-2 py-4 border border-secondary/20 relative text-center space-y-5">
 
                 {/*  */}
                 <button onClick={() => setIsSigninPopup(false)} type="button" className="p-2 bg-white shadow-sm absolute top-2 right-2 rounded-full hover:bg-secondary/20 transition-colors cursor-pointer">
@@ -55,6 +55,7 @@ function SigninPopup() {
                 </h3>
 
                 {/*  */}
+
 
                 <button disabled={isAuthenticating} onClick={handleAuth} className="w-full bg-primary text-white border-2 border-primary rounded-lg hover:bg-transparent enabled:hover:text-primary py-2 font-semibold enabled:cursor-pointer transition-colors flex flex-row items-center justify-center gap-x-2 group disabled:bg-primary/40">
                     {isAuthenticating ?

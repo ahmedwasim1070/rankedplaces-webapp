@@ -109,7 +109,7 @@ function AddTagPopup() {
 
     return (
         <section className="fixed min-w-screen min-h-screen bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center px-2">
-            <div className="w-1/3 min-w-xxs bg-background rounded-lg shadow-sm px-2 py-4 border border-secondary/20 relative text-center space-y-5">
+            <div className="w-1/12 sm:w-[96%] md:w-[28rem] min-w-xxs bg-background rounded-lg shadow-sm px-2 py-4 border border-secondary/20 relative text-center space-y-5">
 
                 {/*  */}
                 <button onClick={() => setIsAddTagPop(false)} type="button" className="p-2 bg-white shadow-sm absolute top-2 right-2 rounded-full cursor-pointer hover:bg-secondary/20 transition-colors">
