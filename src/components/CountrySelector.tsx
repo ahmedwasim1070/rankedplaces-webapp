@@ -41,7 +41,7 @@ function CountrySelector({ setIsCountrySelector }: Props) {
 
         setIsFetchingCapital(true);
         try {
-            const res = await fetch(`/api/fetch/capital/?&capital=${capital}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/capital/?&capital=${capital}`);
             const data = (await res.json()) as ApiResponse<CapitalReponse | never>;
 
             if (!data.success) {
@@ -92,7 +92,7 @@ function CountrySelector({ setIsCountrySelector }: Props) {
             // 
             setErrMsg(null);
             try {
-                const res = await fetch('/api/fetch/countries');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/countries`);
                 const data = (await res.json()) as ApiResponse<CountryResponse[] | never>;
 
                 if (!data.success) {

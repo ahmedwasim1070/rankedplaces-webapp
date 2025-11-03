@@ -51,7 +51,7 @@ const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSel
             setIsFetchingSuggestion(true);
 
             try {
-                const res = await fetch(`/api/fetch/place-suggestion/?searched-place=${searchedPlace}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/place-suggestion/?searched-place=${searchedPlace}`);
                 const data = (await res.json()) as ApiResponse<PlaceSuggestionResponse[] | never>;
 
                 if (!data.success) {
@@ -275,7 +275,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
             setIsFetchingSuggestion(true);
 
             try {
-                const res = await fetch(`/api/fetch/tags-suggestion/?searched-tag=${value}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/tags-suggestion/?searched-tag=${value}`);
                 const data = (await res.json()) as ApiResponse<Tags[] | never>;
 
                 if (!data.success) {
@@ -363,7 +363,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
                 userAddedTags: selectedTags,
             };
 
-            const res = await fetch(`/api/add/place`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/add/place`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"

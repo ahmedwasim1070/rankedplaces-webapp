@@ -85,7 +85,7 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
             setIsLocationProviderLoading(true);
 
             try {
-                const res = await fetch(`/api/fetch/ip-geo-data`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/ip-geo-data`);
                 const data = (await res.json()) as ApiResponse<IpGeoDataResponse | never>;
 
                 if (!data.success) {
@@ -116,7 +116,7 @@ export const LocationProvider = ({ children, initialLocation }: Props) => {
                     setIsLocationProviderLoading(true);
 
                     try {
-                        const res = await fetch(`/api/fetch/lat-n-lng-data/?lat=${latitude}&lng=${longitude}`);
+                        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/lat-n-lng-data/?lat=${latitude}&lng=${longitude}`);
                         const data = (await res.json()) as ApiResponse<LatNLngDataResponse | never>;
 
                         if (!data.success) {

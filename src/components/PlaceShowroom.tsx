@@ -130,7 +130,7 @@ const PlaceCard = ({ place }: PlaceCardProps) => {
                 tag: urlParams.tag,
                 voteType: direction,
             }
-            const res = await fetch('/api/add/vote', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/add/vote`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -302,7 +302,7 @@ function PlaceShowroom() {
             setIsLoading(true);
 
             // 
-            let url = "/api/fetch/places";
+            let url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/places`;
             switch (pathname) {
                 case "/":
                     url = url + `/?fetch-by=world&tag=${urlParams.tag}&page=${urlParams.page}`;
@@ -316,7 +316,6 @@ function PlaceShowroom() {
                 default:
                     break;
             }
-            console.log(url);
 
             try {
                 const res = await fetch(`${url}`);

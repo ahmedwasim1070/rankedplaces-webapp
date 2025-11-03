@@ -70,7 +70,7 @@ function CitySelector() {
             // 
             setErrMsg(null);
             try {
-                const res = await fetch(`/api/fetch/cities/?country=${urlParams.country}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/cities/?country=${urlParams.country}`);
                 const data = (await res.json()) as ApiResponse<CitiesResponse[] | never>;
 
                 if (!data.success) {

@@ -81,7 +81,7 @@ export const GlobalProvider = ({ children }: Props) => {
             if (status !== 'authenticated') return;
 
             try {
-                const res = await fetch('/api/fetch/user-data');
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/user-data`);
                 const data = (await res.json()) as ApiResponse<FetchUserData | never>;
 
                 if (!data.success) {

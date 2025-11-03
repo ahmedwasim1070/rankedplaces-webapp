@@ -100,7 +100,7 @@ function TagCarousel() {
             setIsFetching(true);
 
             // 
-            let url = "/api/fetch/tags";
+            let url = `${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/tags`;
             switch (pathname) {
                 case "/":
                     url = url + "/?fetch-by=world";
@@ -166,7 +166,7 @@ function TagCarousel() {
                 </button>
                 {tags && tags.map((tag, idx) => (
                     <button onClick={() => handleTagChange(tag.name)} key={idx} className={`rounded-full px-4 py-2  border-2 border-secondary  ${urlParams.tag === tag.name ? 'bg-transparent text-secondary' : 'bg-secondary text-white hover:bg-transparent hover:text-secondary transition-colors cursor-pointer'}`}>
-                        <p className='font-semibold'>
+                        <p className='font-semibold text-nowrap'>
                             {tag.name}
                         </p>
                     </button>
