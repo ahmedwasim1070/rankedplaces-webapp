@@ -56,8 +56,7 @@ function SigninPopup() {
 
                 {/*  */}
 
-
-                <button disabled={isAuthenticating} onClick={handleAuth} className="w-full bg-primary text-white border-2 border-primary rounded-lg hover:bg-transparent enabled:hover:text-primary py-2 font-semibold enabled:cursor-pointer transition-colors flex flex-row items-center justify-center gap-x-2 group disabled:bg-primary/40">
+                <button disabled={isAuthenticating} onClick={handleAuth} className="w-full px-2 bg-primary text-white border-2 border-primary rounded-lg hover:bg-transparent enabled:hover:text-primary py-2 font-semibold enabled:cursor-pointer transition-colors flex flex-row items-center justify-center gap-x-2 group disabled:bg-primary/40">
                     {isAuthenticating ?
                         (
                             <Loader dotSize="3" className="py-1" />

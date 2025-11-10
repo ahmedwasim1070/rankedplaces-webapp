@@ -339,7 +339,7 @@ const AddPlaceConfirmation = ({ selectedPlaceDetails, setSelectedPlaceDetails, s
         });
         setSuggestedTags(null);
         setSearchedTag("");
-    }, [selectedPlaceDetails]);
+    }, []);
     // handle tag removal by name
     const handleTagRemove = (tagName: string) => {
         setSelectedTags(prev => prev.filter(tag => tag !== tagName));

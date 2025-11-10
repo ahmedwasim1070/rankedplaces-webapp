@@ -9,20 +9,23 @@ import { useGlobalProvider } from "@/providers/GlobalProvider";
 // 
 function Footer() {
     // Provider
-    const { mainNav } = useGlobalProvider();
+    const { mainNav, pathname } = useGlobalProvider();
     // Nav Item
     const primaryNavigationItems = [
         {
             href: '/about-us',
             label: 'About us',
+            isActive: pathname === '/about-us',
         },
         {
             href: '/terms-of-usage',
             label: 'Terms Of Usage',
+            isActive: pathname === '/terms-of-usage',
         },
         {
             href: '/privacy-policy',
             label: 'Privacy Policy',
+            isActive: pathname === '/privacy-policy',
         }
     ]
 
@@ -36,7 +39,7 @@ function Footer() {
                         <nav>
                             <ul className="space-y-2">
                                 {primaryNavigationItems.map((item, idx) => (
-                                    <li key={idx} className="text-primary font-semibold 2xl:text-md lg:text-sm transition-colors decoration-secondary hover:text-secondary hover:decoration-primary">
+                                    <li key={idx} className={`text-primary font-semibold 2xl:text-md lg:text-sm transition-colors decoration-secondary hover:text-secondary hover:decoration-primary ${item.isActive ? 'text-secondary' : 'text-primary'}`}>
                                         <Link href={item.href} className="underline">{item.label}</Link>
                                     </li>
                                 ))}
@@ -55,7 +58,7 @@ function Footer() {
                                 className="hover:opacity-80 transition-opacity"
                             />
                         </Link>
-                        <h6 className="text-secondary text-xl font-semibold ">Ranking Places</h6>
+                        <h6 className="text-secondary text-xl text-center font-semibold ">Ranking Places</h6>
                     </section>
 
                     {/*  */}

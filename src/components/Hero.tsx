@@ -10,6 +10,7 @@ import AddTagBtn from "./AddTagBtn";
 import { useLocationProvider } from "@/providers/LocationProvider";
 import { useGlobalProvider } from "@/providers/GlobalProvider";
 import AddPlaceBtn from "./AddPlaceBtn";
+import { signOut } from "next-auth/react";
 
 // 
 function Hero() {
@@ -18,6 +19,19 @@ function Hero() {
     const { urlParams } = useLocationProvider();
     // Global
     const { status, pathname } = useGlobalProvider();
+
+    // handle Sigin out
+    const handleSignOut = async () => {
+        try {
+            const res = await signOut();
+        } catch (err) {
+            // Message
+            const msg =
+                err instanceof Error ? err.message : "Unexpected error.";
+            // 
+            console.error("Error in handleSignOut in Hero.", "Message : ", msg, "Error : ", err);
+        }
+    }
 
     return (
         <main role="main" className="min-w-screen py-14 flex flex-col items-center bg-gradient-to-b from-background to-white gap-y-4">
@@ -56,20 +70,24 @@ function Hero() {
             {/*  */}
             <SigninBtn />
 
-            {status !== 'authenticated' && (
-                <p className="text-primary font-semibold text-sm">Login To Add Tag , Places and Votes</p>
-            )}
 
-            <div className="flex flex-row items-center">
+            {status !== 'authenticated' ? (
+                <p className="text-primary font-semibold text-sm text-center">Login To Add Tag , Places and Votes</p>
+            ) : (
+                <button onClick={handleSignOut} className="text-primary underline cursor-pointer hover:text-secondary font-semibold">Logout</button>
+            )
+            }
+
+            <div className="flex xs:flex-row flex-col items-center gap-y-4">
                 {/*  */}
                 <AddTagBtn />
 
-                <span className="text-secondary text-2xl">|</span>
+                <span className="text-secondary xs:block hidden text-2xl">|</span>
 
                 {/*  */}
                 <AddPlaceBtn />
             </div>
-        </main>
+        </main >
     )
 }
 

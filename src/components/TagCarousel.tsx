@@ -145,7 +145,7 @@ function TagCarousel() {
         <section className="min-w-full py-2 flex flex-row items-center overflow-x-hidden px-2">
             <button
                 onClick={() => handleScroll("prev")}
-                className="bg-primary rounded-full p-1 xxs:p-2 border-2 border-primary transition-colors hover:bg-transparent cursor-pointer"
+                className="xs:block hidden bg-primary rounded-full p-2 border-2 border-primary transition-colors hover:bg-transparent cursor-pointer"
             >
                 <ChevronLeft className="w-6 h-6 xxs:w-8 xxs:h-8 text-secondary" />
             </button>
@@ -175,7 +175,7 @@ function TagCarousel() {
 
             <button
                 onClick={() => handleScroll("next")}
-                className="bg-primary rounded-full p-1 xxs:p-2 border-2 border-primary transition-colors hover:bg-transparent cursor-pointer"
+                className="xs:block hidden bg-primary rounded-full p-2 border-2 border-primary transition-colors hover:bg-transparent cursor-pointer"
             >
                 <ChevronRight className="w-6 h-6 xxs:w-8 xxs:h-8 text-secondary" />
             </button>
