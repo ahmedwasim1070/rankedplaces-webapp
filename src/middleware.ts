@@ -13,7 +13,6 @@ const protectedRoutes = [
   "/api/fetch/user-data",
   "/api/fetch/place-details",
   "/api/fetch/place-suggestion",
-  "/api/fetch/tags-suggestion",
   "/api/fetch/user-data",
 ];
 

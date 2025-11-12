@@ -1,6 +1,5 @@
 // Imports
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma/prisma";
 // Lib
 import { ApiError } from "@/lib/error/ApiError";
@@ -12,23 +11,13 @@ import { Tags } from "@/generated/prisma";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
 
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-
   const searchedTag = searchParams.get(`searched-tag`);
   try {
-    if (!searchedTag || searchedTag.length < 2) {
+    if (!searchedTag || searchedTag.length < 3) {
       throw new ApiError("searched-tag value is Invalid or Required.", 400);
     }
 
-    const uniqueId = token?.unique_id;
-    if (!uniqueId) {
-      throw new ApiError("No user found.", 404);
-    }
-
-    const suggestedPlace = await prisma.tags.findMany({
+    const suggestedPlace: Tags[] = await prisma.tags.findMany({
       where: {
         name: {
           contains: searchedTag,

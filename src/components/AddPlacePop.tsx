@@ -51,7 +51,7 @@ const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSel
             setIsFetchingSuggestion(true);
 
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/place-suggestion/?searched-place=${searchedPlace}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/place-suggestion/?searched-place=${value}`);
                 const data = (await res.json()) as ApiResponse<PlaceSuggestionResponse[] | never>;
 
                 if (!data.success) {
@@ -87,12 +87,12 @@ const AddPlaceSelector = ({ setIsLoading, setSelectedPlaceDetails }: AddPlaceSel
         if (value.length > 3) {
             setIsFetchingSuggestion(true);
             debouncerTimerRef.current = setTimeout(() => {
-                if (Date.now() - lastTypedAtRef.current >= 1000) {
+                if (Date.now() - lastTypedAtRef.current >= 500) {
                     fetchPlaceSuggestion(value);
                 } else {
                     setIsFetchingSuggestion(false);
                 }
-            }, 1000);
+            }, 500);
         } else {
             setSuggestedPlaces(null);
             setIsFetchingSuggestion(false);

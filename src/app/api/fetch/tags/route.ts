@@ -15,7 +15,6 @@ import { isValidLatnLng } from "@/lib/api/validators";
 //
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-
   const fetchBy = searchParams.get("fetch-by");
 
   try {

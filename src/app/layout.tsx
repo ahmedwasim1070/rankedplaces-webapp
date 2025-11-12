@@ -1,4 +1,3 @@
-
 export const dynamic = "force-dynamic";
 
 // Imports
@@ -19,8 +18,30 @@ import { SessionWrapper } from "@/providers/SessionWrapper";
 
 // Metadata
 export const metadata: Metadata = {
-  title: "RankedPlaces",
-  description: "Ranking Places based on tags.",
+  title: "RankedPlaces – Find & Rank the Best Spots",
+  description: "Discover, compare, and rank the best places near you.",
+  openGraph: {
+    title: "RankedPlaces – Find & Rank the Best Spots",
+    description: "Discover, compare, and rank the best places near you.",
+    url: "https://rankedplaces.vercel.app",
+    siteName: "RankedPlaces",
+    images: [
+      {
+        url: "https://rankedplaces.vercel.app/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "RankedPlaces Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RankedPlaces – Find & Rank the Best Spots",
+    description: "Discover, compare, and rank the best places near you.",
+    images: ["https://rankedplaces.vercel.app/og-image.jpg"],
+  },
 };
 
 // 
