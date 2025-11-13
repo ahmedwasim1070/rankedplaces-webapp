@@ -8,26 +8,27 @@ import { Suspense } from "react";
 import "./globals.css";
 // Providers
 import { LocationProvider } from "@/providers/LocationProvider";
+import { SessionWrapper } from "@/providers/SessionWrapper";
 // Components
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Loader from "@/components/Loader";
 // Types
 import { LocationCookieData } from "@/types";
-import { SessionWrapper } from "@/providers/SessionWrapper";
 
 // Metadata
 export const metadata: Metadata = {
   title: "RankedPlaces – Find & Rank the Best Spots",
   description: "Discover, compare, and rank the best places near you.",
+  metadataBase: new URL("https://rankedplaces.vercel.app"),
   openGraph: {
     title: "RankedPlaces – Find & Rank the Best Spots",
     description: "Discover, compare, and rank the best places near you.",
-    url: "https://rankedplaces.vercel.app",
+    url: "/",
     siteName: "RankedPlaces",
     images: [
       {
-        url: "https://rankedplaces.vercel.app/og-image.jpg",
+        url: "/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "RankedPlaces Preview",
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RankedPlaces – Find & Rank the Best Spots",
     description: "Discover, compare, and rank the best places near you.",
-    images: ["https://rankedplaces.vercel.app/og-image.jpg"],
+    images: ["/images/og-image.jpg"],
   },
 };
 
@@ -66,7 +67,6 @@ export default async function RootLayout({
     console.error("Invalid user_location cookie : ", err);
     locationCookieData = null;
   }
-
 
   return (
     <html lang="en">
