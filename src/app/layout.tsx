@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     siteName: "RankedPlaces",
     images: [
       {
-        url: "/og-image.jpg",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "RankedPlaces Preview",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RankedPlaces – Find & Rank the Best Spots",
     description: "Discover, compare, and rank the best places near you.",
-    images: ["/images/og-image.jpg"],
+    images: ["/images/og-image.png"],
   },
 };
 
