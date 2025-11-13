@@ -21,6 +21,13 @@ export const metadata: Metadata = {
   title: "RankedPlaces – Find & Rank the Best Spots",
   description: "Discover, compare, and rank the best places near you.",
   metadataBase: new URL("https://rankedplaces.vercel.app"),
+
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/apple-icon.png',
+  },
+
   openGraph: {
     title: "RankedPlaces – Find & Rank the Best Spots",
     description: "Discover, compare, and rank the best places near you.",
@@ -37,12 +44,31 @@ export const metadata: Metadata = {
     locale: "en_US",
     type: "website",
   },
+
   twitter: {
     card: "summary_large_image",
     title: "RankedPlaces – Find & Rank the Best Spots",
     description: "Discover, compare, and rank the best places near you.",
     images: ["/images/og-image.png"],
+    creator: "@yourtwitterhandle",
+    site: "@yourtwitterhandle",
   },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+
+  applicationName: "RankedPlaces",
+
+  keywords: ["places", "rankings", "reviews", "local", "discover"],
 };
 
 // 
