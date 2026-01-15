@@ -14,17 +14,6 @@ A dynamic platform designed to allow users to discover, rate, and explore locati
 
 ---
 
-## ⚖️ License & Rights
-
-**Status:** Proprietary / Closed Source
-
-This repository is public for **portfolio and demonstration purposes only**.
-
-- All intellectual property and codebase rights are reserved.
-- The source code is visible to showcase development skills, full-stack architecture, and API integration.
-
----
-
 ## 🛠 Tech Stack
 
 ### Core Architecture
