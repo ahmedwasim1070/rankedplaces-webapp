@@ -13,7 +13,7 @@
     "cloudinary": "^2.7.0",
     "lucide-react": "^0.542.0",
     "motion": "^12.23.12",
-    "next": "15.5.0",
+    "next": "^16.1.2",
     "next-auth": "^4.24.11",
     "next-cloudinary": "^6.16.1",
     "react": "^19.2.0",
