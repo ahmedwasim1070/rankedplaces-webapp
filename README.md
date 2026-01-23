@@ -37,5 +37,16 @@ A dynamic platform designed to allow users to discover, rate, and explore locati
 
 ---
 
+# 🤝 Contributing
+Contributions are welcome and encouraged.
+
+You can help by:
+
+- Partitioning List Of Places to different pages.
+
+Found a bug or have a feature request? Please open an issue on our GitLab repository. Your feedback helps improve the quality and reliability of the dataset.
+
+---
+
 ### 📄 License
 This project is licensed under the MIT License. See the [LICENSE](https://github.com/ahmedwasim1070/rankedplaces-webapp/blob/main/LICENSE) file for details.
