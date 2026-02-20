@@ -4,26 +4,29 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("POSTGRES_URL_NON_POOLING")
 }
 
 model Users {
-  id        Int      @id @default(autoincrement())
-  unique_id String   @unique
-  email     String   @unique
+  id        Int    @id @default(autoincrement())
+  unique_id String @unique
+  email     String @unique
   name      String
-  places    Places[]
-  tags      Tags[]
-  votes     Votes[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  places Places[]
+  tags   Tags[]
+  votes  Votes[]
 }
 
 model Places {
-  id               Int         @id @default(autoincrement())
-  place_id         String      @unique
-  name             String      @unique
-  pfp              String?     @unique
+  id               Int     @id @default(autoincrement())
+  place_id         String  @unique
+  name             String  @unique
+  pfp              String? @unique
   category         String
   address          String
   city             String
@@ -33,49 +36,71 @@ model Places {
   country_code     String
   phone            String?
   website          String?
-  maps_url         String      @unique
-  review_value     Float       @default(0.0)
-  review_amount    Int         @default(0)
-  total_up_votes   Int         @default(0)
-  total_down_votes Int         @default(0)
-  added_by_id      Int
-  user             Users       @relation(fields: [added_by_id], references: [id])
-  place_tag        PlaceTags[]
+  maps_url         String  @unique
+  review_value     Float   @default(0.0)
+  review_amount    Int     @default(0)
+  total_up_votes   Int     @default(0)
+  total_down_votes Int     @default(0)
+
+  // PostGIS Field
+  geom Unsupported("geometry(Point, 4326)")?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  added_by_id Int
+  user        Users       @relation(fields: [added_by_id], references: [id])
+  place_tag   PlaceTags[]
+
+  @@index([geom], name: "places_geom_idx", type: Gist)
+  @@index([added_by_id])
+  @@index([category, city])
 }
 
 model Tags {
-  id        Int         @id @default(autoincrement())
-  name      String      @unique
+  id        Int    @id @default(autoincrement())
+  name      String @unique
   author_id Int
-  author    Users       @relation(fields: [author_id], references: [id])
+  author    Users  @relation(fields: [author_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
   place_tag PlaceTags[]
+
+  @@index([author_id])
 }
 
 model PlaceTags {
-  id       Int    @id @default(autoincrement())
-  place_id Int
-  tag_id   Int
-  place    Places @relation(fields: [place_id], references: [id])
-  tag      Tags   @relation(fields: [tag_id], references: [id])
+  id         Int     @id @default(autoincrement())
+  place_id   Int
+  tag_id     Int
+  place      Places  @relation(fields: [place_id], references: [id])
+  tag        Tags    @relation(fields: [tag_id], references: [id])
+  up_votes   Int     @default(0)
+  down_votes Int     @default(0)
+  vote       Votes[]
 
-  up_votes   Int @default(0)
-  down_votes Int @default(0)
-
-  vote Votes[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@unique([place_id, tag_id])
+  @@index([tag_id])
 }
 
 model Votes {
-  id          Int      @id @default(autoincrement())
-  vote_type   VoteType
-  voted_by_id Int
-  user        Users    @relation(fields: [voted_by_id], references: [id])
-
+  id           Int       @id @default(autoincrement())
+  vote_type    VoteType
+  voted_by_id  Int
+  user         Users     @relation(fields: [voted_by_id], references: [id])
   place_tag_id Int
   place_tag    PlaceTags @relation(fields: [place_tag_id], references: [id])
 
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
   @@unique([voted_by_id, place_tag_id])
+  @@index([place_tag_id])
 }
 
 enum VoteType {

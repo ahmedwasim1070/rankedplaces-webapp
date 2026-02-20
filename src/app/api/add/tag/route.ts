@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       },
       {
         status: 200,
-      }
+      },
     );
   } catch (error) {
     // Message
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       },
       {
         status,
-      }
+      },
     );
   }
 }

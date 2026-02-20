@@ -17,7 +17,7 @@ const protectedRoutes = [
 ];
 
 //
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   //
   if (
     !process.env.NODE_ENV ||

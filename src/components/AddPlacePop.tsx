@@ -40,7 +40,7 @@ const AddPlaceSelector = ({
 }: AddPlaceSelectorProps) => {
   // Providers
   // Location
-  const { urlParams } = useLocationProvider();
+  // const { urlParams } = useLocationProvider();
   // Refs
   // Timer
   const debouncerTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -67,7 +67,7 @@ const AddPlaceSelector = ({
 
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/place-suggestion/?searched-place=${value}`
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/place-suggestion/?searched-place=${value}`,
         );
         const data = (await res.json()) as ApiResponse<
           PlaceSuggestionResponse[] | never
@@ -89,7 +89,7 @@ const AddPlaceSelector = ({
           "Message : ",
           msg,
           "Error : ",
-          err
+          err,
         );
       } finally {
         setIsFetchingSuggestion(false);
@@ -136,7 +136,7 @@ const AddPlaceSelector = ({
 
     setIsLoading(true);
 
-    let url: string = `/api/fetch/place-details/?place-id=${selectedPlace.place_id}`;
+    const url: string = `/api/fetch/place-details/?place-id=${selectedPlace.place_id}`;
 
     try {
       const res = await fetch(url);
@@ -163,7 +163,7 @@ const AddPlaceSelector = ({
         "Message : ",
         msg,
         "Error : ",
-        err
+        err,
       );
     } finally {
       setIsLoading(false);
@@ -319,7 +319,7 @@ const AddPlaceConfirmation = ({
 
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/tags-suggestion/?searched-tag=${value}`
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/tags-suggestion/?searched-tag=${value}`,
         );
         const data = (await res.json()) as ApiResponse<Tags[] | never>;
 
@@ -339,7 +339,7 @@ const AddPlaceConfirmation = ({
           "Message : ",
           msg,
           "Error : ",
-          err
+          err,
         );
       } finally {
         setIsFetchingSuggestion(false);
@@ -379,7 +379,7 @@ const AddPlaceConfirmation = ({
         prev.some((tag) => tag === tagName) ||
         (selectedPlaceDetails.dbData
           ? selectedPlaceDetails.dbData.place_tag.some(
-              (placeTag) => placeTag.tag.name === tagName
+              (placeTag) => placeTag.tag.name === tagName,
             )
           : false);
 
@@ -423,7 +423,7 @@ const AddPlaceConfirmation = ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify(formData),
-        }
+        },
       );
       const data = (await res.json()) as ApiResponse<null | never>;
 
@@ -450,7 +450,7 @@ const AddPlaceConfirmation = ({
         "Message : ",
         msg,
         "Error : ",
-        err
+        err,
       );
     } finally {
       setIsAddingPlace(false);
@@ -468,14 +468,14 @@ const AddPlaceConfirmation = ({
     setCity(
       getAddressComponent(
         selectedPlaceDetails.googleData.address_components,
-        "locality"
-      )?.long_name || null
+        "locality",
+      )?.long_name || null,
     );
     setCountry(
       getAddressComponent(
         selectedPlaceDetails.googleData.address_components,
-        "country"
-      )?.long_name || null
+        "country",
+      )?.long_name || null,
     );
   }, [selectedPlaceDetails]);
   //
@@ -484,7 +484,7 @@ const AddPlaceConfirmation = ({
     if (hasAutoAddedTagRef.current) return;
 
     const isTagAlreadyInPlace = selectedPlaceDetails.dbData?.place_tag.some(
-      (placeTag) => placeTag.tag.name === urlParams.tag
+      (placeTag) => placeTag.tag.name === urlParams.tag,
     );
 
     if (!isTagAlreadyInPlace) {

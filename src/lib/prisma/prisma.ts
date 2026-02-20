@@ -7,6 +7,8 @@ const gloablPrisma = globalThis as unknown as {
 };
 
 // Exports
-export const prisma = gloablPrisma.prisma ?? new PrismaClient();
+export const prisma = gloablPrisma.prisma || new PrismaClient({
+  datasourceUrl: process.env.POSTGRES_PRISMA_URL,
+});
 
 if (process.env.NODE_ENV !== "production") gloablPrisma.prisma = prisma;

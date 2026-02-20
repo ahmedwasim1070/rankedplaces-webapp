@@ -91,6 +91,7 @@ ADD CONSTRAINT "Votes_voted_by_id_fkey" FOREIGN KEY ("voted_by_id") REFERENCES "
 -- AddForeignKey
 ALTER TABLE "public"."Votes"
 ADD CONSTRAINT "Votes_place_tag_id_fkey" FOREIGN KEY ("place_tag_id") REFERENCES "public"."PlaceTags"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
 -- PostGIS Extension and Geometry Setup
 CREATE EXTENSION IF NOT EXISTS postgis;
 --
@@ -102,7 +103,7 @@ UPDATE "public"."Places"
 SET geom = ST_SetSRID(ST_MakePoint(lng, lat), 4326)
 WHERE lat IS NOT NULL
     AND lng IS NOT NULL;
--- Function + Trigger
+-- Function / Auto Trigger
 CREATE OR REPLACE FUNCTION public.places_set_geom() RETURNS TRIGGER AS $$ BEGIN IF NEW.lat IS NOT NULL
     AND NEW.lng IS NOT NULL THEN NEW.geom := ST_SetSRID(ST_MakePoint(NEW.lng, NEW.lat), 4326);
 END IF;

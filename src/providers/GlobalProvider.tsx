@@ -1,7 +1,14 @@
-'use client';
+"use client";
 
 // Imports
-import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react"
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Toaster } from "react-hot-toast";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -16,135 +23,144 @@ import { ApiResponse, FetchUserData } from "@/types";
 
 // Interfaces
 interface ProviderProps {
-    userData: FetchUserData | null;
-    status: 'authenticated' | 'loading' | 'unauthenticated';
-    pathname: string;
-    isLoading: boolean;
-    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    setIsSigninPopup: React.Dispatch<React.SetStateAction<boolean>>;
-    setIsAddTagPop: React.Dispatch<React.SetStateAction<boolean>>;
-    setIsAddPlacePop: React.Dispatch<React.SetStateAction<boolean>>;
-    mainNav: MainNav[];
+  userData: FetchUserData | null;
+  status: "authenticated" | "loading" | "unauthenticated";
+  pathname: string;
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsSigninPopup: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsAddTagPop: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsAddPlacePop: React.Dispatch<React.SetStateAction<boolean>>;
+  mainNav: MainNav[];
 }
 interface Props {
-    children: ReactNode;
+  children: ReactNode;
 }
 
 type MainNav = {
-    href: string;
-    label: string;
-    isActive: boolean;
-}
+  href: string;
+  label: string;
+  isActive: boolean;
+};
 
 // Context
 const GlobalContext = createContext<ProviderProps | undefined>(undefined);
 
-// 
+//
 export const GlobalProvider = ({ children }: Props) => {
-    // Provider
-    // Session
-    const { data: session, status } = useSession();
-    // Location
-    const { urlParams, isLocationProviderLoading } = useLocationProvider();
-    // Path
-    const pathname = usePathname();
-    // User data
-    const [userData, setUserData] = useState<FetchUserData | null>(null);
-    // Login
-    // Loader state to triger main loader
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    // Popup screen state for signin
-    const [isSigninPop, setIsSigninPopup] = useState(false);
-    // Popup screen state for tag-creation
-    const [isAddTagPop, setIsAddTagPop] = useState(false);
-    // Popup screen state for tag-creation
-    const [isAddPlacePop, setIsAddPlacePop] = useState(false);
+  // Provider
+  // Session
+  const { status } = useSession();
+  // Location
+  const { urlParams, isLocationProviderLoading } = useLocationProvider();
+  // Path
+  const pathname = usePathname();
+  // User data
+  const [userData, setUserData] = useState<FetchUserData | null>(null);
+  // Login
+  // Loader state to triger main loader
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  // Popup screen state for signin
+  const [isSigninPop, setIsSigninPopup] = useState(false);
+  // Popup screen state for tag-creation
+  const [isAddTagPop, setIsAddTagPop] = useState(false);
+  // Popup screen state for tag-creation
+  const [isAddPlacePop, setIsAddPlacePop] = useState(false);
 
-    // Constants
-    // Nav Contents
-    const mainNav: MainNav[] = [
-        {
-            href: '/top-country-places',
-            label: 'Top Country Places',
-            isActive: pathname === '/top-country-places',
-        },
-        {
-            href: '/top-city-places',
-            label: 'Top City Places',
-            isActive: pathname === '/top-city-places',
-        }
-    ]
+  // Constants
+  // Nav Contents
+  const mainNav: MainNav[] = [
+    {
+      href: "/top-country-places",
+      label: "Top Country Places",
+      isActive: pathname === "/top-country-places",
+    },
+    {
+      href: "/top-city-places",
+      label: "Top City Places",
+      isActive: pathname === "/top-city-places",
+    },
+  ];
 
-    // Effects
-    useEffect(() => {
-        const fetchUserData = async () => {
-            if (status !== 'authenticated') return;
+  // Effects
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (status !== "authenticated") return;
 
-            try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/user-data`);
-                const data = (await res.json()) as ApiResponse<FetchUserData | never>;
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/fetch/user-data`,
+        );
+        const data = (await res.json()) as ApiResponse<FetchUserData | never>;
 
-                if (!data.success) {
-                    throw new Error(data.message);
-                }
-
-                setUserData(data.data);
-            } catch (err) {
-                // Message
-                const msg = err instanceof Error ? err.message : "Unexpected error.";
-                // Console
-                console.error("Error in fetchUserData in GlobalProvider.", "Message : ", msg, "Error : ", err);
-                // 
-                setUserData(null);
-            }
+        if (!data.success) {
+          throw new Error(data.message);
         }
 
-        fetchUserData();
-    }, [status, urlParams.tag])
+        setUserData(data.data);
+      } catch (err) {
+        // Message
+        const msg = err instanceof Error ? err.message : "Unexpected error.";
+        // Console
+        console.error(
+          "Error in fetchUserData in GlobalProvider.",
+          "Message : ",
+          msg,
+          "Error : ",
+          err,
+        );
+        //
+        setUserData(null);
+      }
+    };
 
-    // Values
-    const values = useMemo(() => ({
-        userData, status, pathname, isLoading, setIsLoading, mainNav, setIsSigninPopup, setIsAddTagPop, setIsAddPlacePop,
-    }), [userData, status, pathname, isLoading])
+    fetchUserData();
+  }, [status, urlParams.tag]);
 
-    return (
-        <GlobalContext.Provider value={values}>
-            {/* Toast Notify */}
-            <Toaster />
+  // Values
+  const values = useMemo(
+    () => ({
+      userData,
+      status,
+      pathname,
+      isLoading,
+      setIsLoading,
+      mainNav,
+      setIsSigninPopup,
+      setIsAddTagPop,
+      setIsAddPlacePop,
+    }),
+    [userData, status, pathname, isLoading],
+  );
 
-            {/* Global Loader */}
-            {isLoading &&
-                <Loader fullscreen={true} />
-            }
-            {isLocationProviderLoading &&
-                <Loader fullscreen={true} />
-            }
+  return (
+    <GlobalContext.Provider value={values}>
+      {/* Toast Notify */}
+      <Toaster />
 
-            {/* Signin Screen Popup */}
-            {isSigninPop &&
-                <SigninPopup />
-            }
+      {/* Global Loader */}
+      {isLoading && <Loader fullscreen={true} />}
+      {isLocationProviderLoading && <Loader fullscreen={true} />}
 
-            {/* Create-tag Screen Popup */}
-            {isAddTagPop &&
-                <AddTagPopup />
-            }
+      {/* Signin Screen Popup */}
+      {isSigninPop && <SigninPopup />}
 
-            {/* Add-place Screen Popup */}
-            {isAddPlacePop &&
-                <AddPlacePop />
-            }
+      {/* Create-tag Screen Popup */}
+      {isAddTagPop && <AddTagPopup />}
 
-            {pathname !== '/' ? !isLocationProviderLoading && children : children}
-        </GlobalContext.Provider >
-    );
-}
+      {/* Add-place Screen Popup */}
+      {isAddPlacePop && <AddPlacePop />}
+
+      {pathname !== "/" ? !isLocationProviderLoading && children : children}
+    </GlobalContext.Provider>
+  );
+};
 
 // Hook to fetch provider data
 export const useGlobalProvider = (): ProviderProps => {
-    const context = useContext(GlobalContext);
-    if (context === undefined) {
-        throw new Error('useGlobalProvider must be used within a GlobalProvider');
-    }
-    return context;
-}
+  const context = useContext(GlobalContext);
+  if (context === undefined) {
+    throw new Error("useGlobalProvider must be used within a GlobalProvider");
+  }
+  return context;
+};
