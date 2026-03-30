@@ -132,7 +132,7 @@ function Hero() {
         setSuggestedSearches(null);
       }}
       role="main"
-      className="min-w-screen py-14 flex flex-col items-center bg-gradient-to-b from-background to-white gap-y-4"
+      className="min-w-screen py-14 flex flex-col items-center bg-linear-to-b from-background to-white gap-y-4"
     >
       {/*  */}
       <article className="text-center px-2">
@@ -140,9 +140,10 @@ function Hero() {
           {/*  */}
           <h1>
             <Image
-              className=""
+              className="w-67.5"
               src={"/main-logo.svg"}
-              width={270}
+              priority
+              width={285}
               height={120}
               alt="RankedPlaces - Business Directory and Ranking Platform logo"
             />

@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
       throw new ApiError("Error from external api.Incomplelete Response.", 404);
     }
 
+
     const placeByGoogle: PlaceDetailsByGoogle = data.result;
     if (
       !placeByGoogle ||

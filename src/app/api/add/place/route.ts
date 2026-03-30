@@ -57,7 +57,7 @@ async function generateGooglePhotoUrl(
     return null;
   }
 
-  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1024&photoreference=${photoReference}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
+  return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1024&photo_reference=${photoReference}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
 }
 
 //

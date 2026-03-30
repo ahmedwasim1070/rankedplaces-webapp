@@ -677,7 +677,7 @@ function AddPlacePop() {
 
   return (
     <section className="fixed min-w-screen min-h-screen bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center px-2">
-      <div className="w-11/12 sm:w-[96%] md:w-[28rem] bg-background rounded-lg shadow-sm px-2 py-4 border border-secondary/20 relative text-center overflow-hidden">
+      <div className="w-11/12 sm:w-[96%] md:w-md bg-background rounded-lg shadow-sm px-2 py-4 border border-secondary/20 relative text-center">
         {/*  */}
         <button
           onClick={() => setIsAddPlacePop(false)}
